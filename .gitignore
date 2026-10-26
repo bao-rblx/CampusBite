@@ -1,0 +1,17 @@
+*.iml
+.gradle/
+/local.properties
+.idea/
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+.kotlin/
+# Firebase config — download from Firebase console, never commit
+app/google-services.json
+**/node_modules/
+**/*-debug.log
+**/.firebase/
+backend/functions/*service-account*.json
