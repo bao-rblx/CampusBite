@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
             androidx.core.view.WindowInsetsControllerCompat(window, binding.root).hide(WindowInsetsCompat.Type.ime())
         }
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
-            launch { vm.auth.uid.collect { uid ->
+            launch { vm.uid.collect { uid ->
                 binding.bottomNav.show(uid != null)
                 val destination = controller.currentDestination?.id
                 if (uid == null && destination != R.id.loginFragment) controller.navigate(R.id.loginFragment, null, NavOptions.Builder().setPopUpTo(R.id.nav_graph, true).build())

@@ -20,7 +20,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.campusbite.R
 import com.campusbite.data.local.entity.*
 import com.campusbite.databinding.FragmentDashboardBinding
-import com.campusbite.di.ServiceLocator
 import com.campusbite.domain.money
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -29,7 +28,8 @@ import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
 
 class DashboardFragment : Fragment() {
-    private var binding: FragmentDashboardBinding? = null
+    private var _binding: FragmentDashboardBinding? = null
+    private val binding get() = _binding
     private val vm: CampusViewModel by activityViewModels()
     private lateinit var adapter: CampusAdapter
     private var latest = CampusState()
@@ -47,7 +47,7 @@ class DashboardFragment : Fragment() {
         query = state?.getString("query").orEmpty(); category = state?.getString("category") ?: "All"
         favourites = state?.getBoolean("favourites") ?: false; budget = state?.getBoolean("budget") ?: false
         sort = state?.getInt("sort") ?: 0; status = state?.getString("status") ?: "All"
-        return FragmentDashboardBinding.inflate(inflater, container, false).also { binding = it }.root
+        return FragmentDashboardBinding.inflate(inflater, container, false).also { _binding = it }.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val b = requireNotNull(binding)
@@ -59,7 +59,7 @@ class DashboardFragment : Fragment() {
         b.searchBox.show(page == "home" || page == "search")
         b.search.setText(query)
         b.search.doAfterTextChanged { query = it.toString(); render() }
-        b.refresh.setOnRefreshListener { vm.action { try { vm.repository.refresh() } finally { binding?.refresh?.isRefreshing = false } } }
+        b.refresh.setOnRefreshListener { vm.action { try { vm.refresh() } finally { binding?.refresh?.isRefreshing = false } } }
         b.refresh.isEnabled = page == "home" || page == "search"
         if (page == "cart") ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(r: RecyclerView, h: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
@@ -98,7 +98,7 @@ class DashboardFragment : Fragment() {
 
     private fun render() {
         val b = binding ?: return
-        b.eyebrow.text = if (vm.auth.isDemo) "CAMPUSBITE  /  DEMO" else "CAMPUSBITE  /  PICK UP & GO"
+        b.eyebrow.text = if (vm.isDemo) "CAMPUSBITE  /  DEMO" else "CAMPUSBITE  /  PICK UP & GO"
         val categories = latest.dishes.map { it.category }.distinct().sorted()
         if (categories != visibleCategories) { visibleCategories = categories; filters() }
         b.primary.show(false)
@@ -138,7 +138,7 @@ class DashboardFragment : Fragment() {
             }
             "orders" -> {
                 b.title.text = "Lunch plans, sorted."
-                b.subtitle.text = if (vm.auth.isDemo) "Demo orders stay on this device." else "Your pickup updates, all in one place."
+                b.subtitle.text = if (vm.isDemo) "Demo orders stay on this device." else "Your pickup updates, all in one place."
                 val orders = latest.orders.filter { status == "All" || it.status.name == status }
                 if (orders.isEmpty()) rows += DisplayRow("empty", "No orders here yet.", "Your next great lunch starts with the menu.", actions = listOf(RowAction("Find something good", "home")))
                 orders.forEach { order ->
@@ -150,29 +150,28 @@ class DashboardFragment : Fragment() {
                 b.title.text = "A seat at the table."
                 b.subtitle.text = "Your profile, your preferences."
                 val user = latest.user
-                rows += DisplayRow("profile", user?.displayName ?: "Welcome", user?.email.orEmpty(), if (vm.auth.isDemo) "DEMO ACCOUNT" else "CAMPUS MEMBER", listOf(RowAction("Edit profile", "editProfile")), hero = true)
+                rows += DisplayRow("profile", user?.displayName ?: "Welcome", user?.email.orEmpty(), if (vm.isDemo) "DEMO ACCOUNT" else "CAMPUS MEMBER", listOf(RowAction("Edit profile", "editProfile")), hero = true)
                 rows += DisplayRow("saved", "The usual, please.", "${latest.dishes.count { it.isFavourite }} saved favourites", "YOUR COLLECTION", listOf(RowAction("See favourites", "saved")))
                 rows += DisplayRow("settings", "Make it yours.", "Favourite stall: ${user?.favouriteStallId?.let(::stall) ?: "Not selected"}\nNotification preference: ${if (user?.notificationsOn == true) "On" else "Off"}", "PREFERENCES", listOf(RowAction("Toggle dark mode", "theme"), RowAction("Browse stalls", "stalls")))
                 rows += DisplayRow("session", "Account & privacy", "Signing out clears this account’s cart. Saved orders remain available when you sign in again.", actions = listOf(RowAction("Sign out", "logout"), RowAction("Delete account", "deleteAccount")))
-                if (vm.auth.isDemo) rows += DisplayRow("demo", "You’re exploring a demo.", "Orders and reviews are saved locally. No food is ordered and no payment is taken. Email accounts need Firebase configuration.")
+                if (vm.isDemo) rows += DisplayRow("demo", "You’re exploring a demo.", "Orders and reviews are saved locally. No food is ordered and no payment is taken. Email accounts need Firebase configuration.")
             }
         }
         adapter.submitList(rows)
     }
 
     private fun handle(action: String, id: String) {
-        val repo = vm.repository
         val dish = latest.dishes.find { it.dishId == id }
         val order = latest.orders.find { it.orderId == id }
         val item = latest.cart.find { "cart:${it.cartItemId}" == id }
         when (action) {
             "dish", "order" -> findNavController().navigate(R.id.detailFragment, bundleOf("kind" to action, "id" to id))
-            "add" -> vm.action("Added to your cart.") { repo.add(id) }
-            "favourite" -> if (dish != null) vm.action { repo.favourite(dish) }
-            "minus" -> if (item != null) if (item.quantity == 1) remove(id) else vm.action { repo.quantity(item, item.quantity - 1) }
-            "plus" -> if (item != null) vm.action { repo.quantity(item, item.quantity + 1) }
+            "add" -> vm.action("Added to your cart.") { vm.add(id) }
+            "favourite" -> if (dish != null) vm.action { vm.favourite(dish) }
+            "minus" -> if (item != null) if (item.quantity == 1) remove(id) else vm.action { vm.quantity(item, item.quantity - 1) }
+            "plus" -> if (item != null) vm.action { vm.quantity(item, item.quantity + 1) }
             "remove" -> remove(id)
-            "reorder" -> if (order != null) vm.action("Added to your cart at current menu prices.") { repo.reorder(order) }
+            "reorder" -> if (order != null) vm.action("Added to your cart at current menu prices.") { vm.reorder(order) }
             "home" -> (activity as? MainActivity)?.selectTab(R.id.homeFragment)
             "saved" -> { (activity as? MainActivity)?.selectTab(R.id.searchFragment, true) }
             "reset" -> { category = "All"; query = ""; favourites = false; budget = false; binding?.search?.setText(""); filters(); render() }
@@ -184,16 +183,16 @@ class DashboardFragment : Fragment() {
                 prefs.edit().putBoolean("dark", !dark).apply()
                 AppCompatDelegate.setDefaultNightMode(if (dark) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES)
             }
-            "logout" -> confirm("Sign out?", "Your current cart will be cleared.") { vm.submit { vm.auth.logout() } }
-            "deleteAccount" -> confirm("Delete your account?", "This permanently removes this login and its data from this device. For a connected account, server data cleanup must be enabled in Firebase. You may need to sign in again before deletion.") { vm.submit { vm.auth.deleteAccount() } }
+            "logout" -> confirm("Sign out?", "Your current cart will be cleared.") { vm.submit { vm.logout() } }
+            "deleteAccount" -> confirm("Delete your account?", "This permanently removes this login and its data from this device. For a connected account, server data cleanup must be enabled in Firebase. You may need to sign in again before deletion.") { vm.submit { vm.deleteAccount() } }
         }
     }
     fun showSaved() { favourites = true; filters(); render() }
     private fun remove(id: String) {
         val item = latest.cart.find { "cart:${it.cartItemId}" == id } ?: return
         vm.action {
-            vm.repository.quantity(item, 0)
-            binding?.root?.let { Snackbar.make(it, "Item removed", Snackbar.LENGTH_LONG).setAction("Undo") { vm.action { vm.repository.restore(item) } }.show() }
+            vm.quantity(item, 0)
+            binding?.root?.let { Snackbar.make(it, "Item removed", Snackbar.LENGTH_LONG).setAction("Undo") { vm.action { vm.restore(item) } }.show() }
         }
     }
     private fun confirm(title: String, text: String, action: () -> Unit) {
@@ -215,13 +214,13 @@ class DashboardFragment : Fragment() {
         val notifications = MaterialSwitch(requireContext()).apply { text = "Notification preference"; isChecked = user.notificationsOn; minHeight = context.dp(48) }; box.addView(notifications)
         val dialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Your profile").setView(box).setNegativeButton("Cancel", null).setPositiveButton("Save", null).create()
         dialog.setOnShowListener { dialog.getButton(-1).setOnClickListener {
-            if (name.value.trim().length < 2) name.layout.error = "Enter at least two characters" else vm.submit("Profile saved.") { vm.auth.saveProfile(name.value, stallIds[spinner.selectedItemPosition], notifications.isChecked); dialog.dismiss() }
+            if (name.value.trim().length < 2) name.layout.error = "Enter at least two characters" else vm.submit("Profile saved.") { vm.saveProfile(name.value, stallIds[spinner.selectedItemPosition], notifications.isChecked); dialog.dismiss() }
         } }
         activeDialog = dialog; dialog.show()
     }
     private fun checkout() {
         val box = form()
-        box.label(if (vm.auth.isDemo) "Demo checkout · No real order" else "Pay at pickup · No delivery fee", 14f, true)
+        box.label(if (vm.isDemo) "Demo checkout · No real order" else "Pay at pickup · No delivery fee", 14f, true)
         val selections = mutableMapOf<String, String>()
         var allHaveSlots = true
         latest.cart.groupBy { it.stallId }.forEach { (stallId, _) ->
@@ -246,10 +245,10 @@ class DashboardFragment : Fragment() {
         dialog.setOnShowListener {
             dialog.getButton(-1).isEnabled = allHaveSlots
             dialog.getButton(-1).setOnClickListener { vm.submit {
-                val orders = vm.repository.checkout(selections.toMap())
+                val orders = vm.checkout(selections.toMap())
                 dialog.dismiss()
                 if (isAdded && binding != null) findNavController().navigate(R.id.detailFragment, bundleOf("kind" to "order", "id" to orders.first()))
-                vm.message(if (vm.auth.isDemo) "Demo order placed." else "Order saved. Pickup is confirmed after sync.")
+                vm.message(if (vm.isDemo) "Demo order placed." else "Order saved. Pickup is confirmed after sync.")
             } }
         }
         activeDialog = dialog; dialog.show()
@@ -259,5 +258,5 @@ class DashboardFragment : Fragment() {
         outState.putBoolean("budget", budget); outState.putInt("sort", sort); outState.putString("status", status)
         super.onSaveInstanceState(outState)
     }
-    override fun onDestroyView() { activeDialog?.dismiss(); activeDialog = null; binding?.list?.adapter = null; binding = null; super.onDestroyView() }
+    override fun onDestroyView() { activeDialog?.dismiss(); activeDialog = null; binding?.list?.adapter = null; _binding = null; super.onDestroyView() }
 }
