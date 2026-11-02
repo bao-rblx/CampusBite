@@ -8,13 +8,24 @@ import com.campusbite.data.remote.CampusBiteApi
 import com.campusbite.data.remote.dto.toEntity
 import com.campusbite.domain.OrderRules
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
-class CampusRepository(val db: AppDatabase, private val api: CampusBiteApi, val auth: AuthRepository,
+class CampusRepository(private val db: AppDatabase, private val api: CampusBiteApi, val auth: AuthRepository,
     private val scheduleSync: () -> Unit) {
     private val gson = Gson()
+
+    // Reactive reads (Room DAO Flow -> Repository -> ViewModel). The UI never touches a DAO.
+    fun observeStalls(): Flow<List<StallEntity>> = db.stallDao().observeAll()
+    fun observeDishes(): Flow<List<DishEntity>> = db.dishDao().observe()
+    fun observeSlots(): Flow<List<SlotEntity>> = db.slotDao().observeAll()
+    fun observeUser(uid: String): Flow<UserEntity?> = db.userDao().observe(uid)
+    fun observeCart(uid: String): Flow<List<CartEntity>> = db.cartDao().observe(uid)
+    fun observeCartCount(uid: String): Flow<Int> = db.cartDao().observeCount(uid)
+    fun observeOrders(uid: String): Flow<List<OrderEntity>> = db.orderDao().observeAll(uid)
+    fun observeReviews(dishId: String): Flow<List<ReviewEntity>> = db.reviewDao().observeForDish(dishId)
     val catalogConfigured = !BuildConfig.MOCKAPI_BASE_URL.contains("example.mockapi.io")
     suspend fun initialize() {
         if (!catalogConfigured || auth.isDemo) initializeDemo()
