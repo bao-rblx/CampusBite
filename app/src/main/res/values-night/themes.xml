@@ -1,0 +1,13 @@
+<resources>
+    <style name="Theme.CampusBite" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#FFB597</item>
+        <item name="colorOnPrimary">#54200B</item>
+        <item name="colorSecondary">#B5C9A9</item>
+        <item name="colorSecondaryContainer">#35462E</item>
+        <item name="colorOnSecondaryContainer">#D9EACB</item>
+        <item name="colorSurface">#211C19</item>
+        <item name="android:windowBackground">#211C19</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:fontFamily">sans</item>
+    </style>
+</resources>
