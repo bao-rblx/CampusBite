@@ -8,4 +8,75 @@
     <string name="nav_orders">Orders</string>
     <string name="nav_profile">Profile</string>
 
+    <!-- Milestone 1 screens -->
+    <string name="login_eyebrow">CAMPUSBITE · YOUR CAMPUS, YOUR TABLE</string>
+    <string name="login_title">Good food.\nZero lunch queues.</string>
+    <string name="login_subtitle">Order ahead between classes and pick up when you are ready.</string>
+    <string name="hint_email">Email address</string>
+    <string name="hint_password">Password</string>
+    <string name="helper_password">At least 8 characters</string>
+    <string name="error_email">Enter a valid email address</string>
+    <string name="error_password">Use at least 8 characters</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_demo">Explore the demo</string>
+    <string name="action_register">New here? Create an account</string>
+    <string name="action_forgot">Forgot password</string>
+
+    <string name="home_greeting">Hey %1$s 👋</string>
+    <string name="home_title">What sounds good?</string>
+    <string name="hint_search">Search dishes or stalls</string>
+    <string name="cat_rice">Rice</string>
+    <string name="cat_noodles">Noodles</string>
+    <string name="cat_drinks">Drinks</string>
+    <string name="cat_snacks">Snacks</string>
+    <string name="home_section">Today\'s picks</string>
+    <string name="action_see_all">See all</string>
+    <string name="cd_open_cart">Open cart</string>
+
+    <string name="cd_dish_photo">Dish photo</string>
+    <string name="cd_favourite">Save to favourites</string>
+    <string name="action_add_short">Add</string>
+    <string name="sample_dish">Cơm gà xối mỡ</string>
+    <string name="sample_stall">Bếp Nhà Lá · Block A</string>
+    <string name="sample_price">35.000 ₫</string>
+    <string name="sample_rating">★ 4.6 (128)</string>
+
+    <string name="detail_allergens_title">Ingredients &amp; allergens</string>
+    <string name="sample_description">Crispy fried chicken, garlic rice, pickled vegetables and chilli fish sauce. Contains soy and fish.</string>
+    <string name="detail_quantity">Quantity</string>
+    <string name="detail_stock">Portions left today</string>
+    <string name="sample_stock">18</string>
+    <string name="sample_qty">1</string>
+    <string name="cd_decrease">Decrease quantity</string>
+    <string name="cd_increase">Increase quantity</string>
+    <string name="hint_note">Note for the stall (optional)</string>
+    <string name="error_note">Keep notes under 200 characters</string>
+    <string name="action_add_to_cart">Add to cart</string>
+    <string name="action_preorder">Pre-order now</string>
+
+    <string name="cart_title">Your lunch, lined up</string>
+    <string name="cart_subtitle">Swipe an item to remove it</string>
+    <string name="cart_empty">Your cart is empty. Add a campus favourite to start.</string>
+    <string name="hint_slot">Pickup time</string>
+    <string name="error_slot">Choose a pickup time</string>
+    <string name="cart_total_label">Total · pay at pickup</string>
+    <string name="sample_total">105.000 ₫</string>
+    <string name="action_checkout">Place order</string>
+    <string name="sample_note">Less chilli, please</string>
+    <string name="cd_remove">Remove item</string>
+
+    <string name="order_title">A good lunch is on the way</string>
+    <string name="sample_order_id">Order #3F9A21C0</string>
+    <string name="status_queued">Queued</string>
+    <string name="status_confirmed">Confirmed</string>
+    <string name="status_preparing">Preparing</string>
+    <string name="status_ready">Ready</string>
+    <string name="status_completed">Done</string>
+    <string name="order_pickup_label">Pickup window</string>
+    <string name="sample_pickup">12:15 – 12:30 · Bếp Nhà Lá, Block A</string>
+    <string name="order_items_label">On your tray</string>
+    <string name="order_sync_pending">Waiting to sync. Pickup is reserved once the server accepts the order.</string>
+    <string name="action_cancel_order">Cancel order</string>
+    <string name="action_order_again">Order again</string>
+
 </resources>

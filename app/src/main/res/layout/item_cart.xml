@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cart row. Vertical packed chain name > note > line price centred on the thumbnail;
+     Barrier below the taller of thumbnail / text column keeps the stepper clear. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Outlined"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="@dimen/space_xs"
+    app:cardCornerRadius="@dimen/card_radius">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/space_s">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgThumb"
+            android:layout_width="@dimen/thumb_size"
+            android:layout_height="@dimen/thumb_size"
+            android:importantForAccessibility="no"
+            android:scaleType="centerCrop"
+            android:src="@drawable/food_noodles"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/space_s"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="@string/sample_dish"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            app:layout_constraintBottom_toTopOf="@id/tvNote"
+            app:layout_constraintEnd_toStartOf="@id/btnRemove"
+            app:layout_constraintStart_toEndOf="@id/imgThumb"
+            app:layout_constraintTop_toTopOf="@id/imgThumb"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tvNote"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_note"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintBottom_toTopOf="@id/tvLinePrice"
+            app:layout_constraintEnd_toEndOf="@id/tvName"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+        <TextView
+            android:id="@+id/tvLinePrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_price"
+            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="@id/imgThumb"
+            app:layout_constraintEnd_toEndOf="@id/tvName"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvNote" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRemove"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:contentDescription="@string/cd_remove"
+            app:icon="@drawable/ic_remove"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="imgThumb,tvLinePrice" />
+
+        <!-- Packed chain aligned to end: [-] qty [+] -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMinus"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:contentDescription="@string/cd_decrease"
+            app:icon="@drawable/ic_remove"
+            app:layout_constraintEnd_toStartOf="@id/tvQty"
+            app:layout_constraintHorizontal_bias="1"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/barrierRow" />
+
+        <TextView
+            android:id="@+id/tvQty"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/sample_qty"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            app:layout_constraintBottom_toBottomOf="@id/btnMinus"
+            app:layout_constraintEnd_toStartOf="@id/btnPlus"
+            app:layout_constraintStart_toEndOf="@id/btnMinus"
+            app:layout_constraintTop_toTopOf="@id/btnMinus" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlus"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:contentDescription="@string/cd_increase"
+            app:icon="@drawable/ic_add"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/tvQty"
+            app:layout_constraintTop_toTopOf="@id/btnMinus" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

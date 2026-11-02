@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Grid card for Home. MaterialCardView supplies shape/stroke; the content inside is one flat
+     ConstraintLayout. 4:3 ratio photo, Barrier under name/stall, packed chain price > add. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.Material3.CardView.Outlined"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/space_xs"
+    app:cardCornerRadius="@dimen/card_radius">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imgDish"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:contentDescription="@string/cd_dish_photo"
+            android:scaleType="centerCrop"
+            android:src="@drawable/food_rice"
+            app:layout_constraintDimensionRatio="4:3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFavourite"
+            style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:contentDescription="@string/cd_favourite"
+            app:icon="@drawable/ic_heart"
+            app:layout_constraintEnd_toEndOf="@id/imgDish"
+            app:layout_constraintTop_toTopOf="@id/imgDish" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/space_m"
+            android:layout_marginTop="@dimen/space_s"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="@string/sample_dish"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imgDish" />
+
+        <TextView
+            android:id="@+id/tvStall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:text="@string/sample_stall"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintEnd_toEndOf="@id/tvName"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/barrierText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="tvName,tvStall" />
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/sample_price"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorPrimary"
+            app:layout_constraintBottom_toBottomOf="@id/btnAdd"
+            app:layout_constraintEnd_toStartOf="@id/btnAdd"
+            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintStart_toStartOf="@id/tvName"
+            app:layout_constraintTop_toTopOf="@id/btnAdd" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAdd"
+            style="@style/Widget.Material3.Button.IconButton.Filled"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:layout_marginTop="@dimen/space_s"
+            android:layout_marginBottom="@dimen/space_s"
+            android:contentDescription="@string/action_add_short"
+            app:icon="@drawable/ic_add"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@id/tvName"
+            app:layout_constraintStart_toEndOf="@id/tvPrice"
+            app:layout_constraintTop_toBottomOf="@id/barrierText" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

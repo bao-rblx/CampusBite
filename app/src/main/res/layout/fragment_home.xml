@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 2: Home / discovery. 4-chip spread chain, 0dp RecyclerView fills the middle,
+     FAB anchored bottom-end opens the cart. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/space_m">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.12" />
+
+    <TextView
+        android:id="@+id/tvGreeting"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceTitleSmall"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@id/tvTitle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="Hey Bảo 👋" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/home_title"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        app:layout_constraintBottom_toTopOf="@id/glHeader"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvGreeting" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilSearch"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_search"
+        app:endIconMode="clear_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/glHeader"
+        app:startIconDrawable="@drawable/ic_search">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Horizontal spread chain: four category chips share the width equally. -->
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipRice"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_s"
+        android:checked="true"
+        android:text="@string/cat_rice"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/chipNoodles"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilSearch" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipNoodles"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:text="@string/cat_noodles"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/chipDrinks"
+        app:layout_constraintStart_toEndOf="@id/chipRice"
+        app:layout_constraintTop_toTopOf="@id/chipRice" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipDrinks"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:text="@string/cat_drinks"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/chipSnacks"
+        app:layout_constraintStart_toEndOf="@id/chipNoodles"
+        app:layout_constraintTop_toTopOf="@id/chipRice" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipSnacks"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:text="@string/cat_snacks"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/chipDrinks"
+        app:layout_constraintTop_toTopOf="@id/chipRice" />
+
+    <!-- Barrier below whichever chip is tallest (long Vietnamese labels may wrap). -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierChips"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="chipRice,chipNoodles,chipDrinks,chipSnacks" />
+
+    <TextView
+        android:id="@+id/tvSection"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:text="@string/home_section"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintEnd_toStartOf="@id/btnSeeAll"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/barrierChips" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSeeAll"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/touch_target"
+        android:text="@string/action_see_all"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvSection"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvDishes"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/space_s"
+        android:clipToPadding="false"
+        android:paddingBottom="88dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSection"
+        tools:listitem="@layout/item_dish_card" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabCart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/space_m"
+        android:contentDescription="@string/cd_open_cart"
+        android:text="@string/nav_cart"
+        app:icon="@drawable/ic_bag"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

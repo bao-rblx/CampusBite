@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 3: Dish detail. 16:9 hero, 50% vertical Guideline splits quantity | stock,
+     Barrier clears the longer of the two columns, weighted CTA chain (1:2) pinned to bottom. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glMid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <ImageView
+        android:id="@+id/imgHero"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/cd_dish_photo"
+        android:scaleType="centerCrop"
+        android:src="@drawable/food_rice"
+        app:layout_constraintDimensionRatio="16:9"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvStall"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/space_m"
+        android:layout_marginTop="@dimen/space_m"
+        android:text="@string/sample_stall"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imgHero" />
+
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_dish"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvStall" />
+
+    <!-- Packed chain: price hugs rating at the start edge. -->
+    <TextView
+        android:id="@+id/tvPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_price"
+        android:textAppearance="?attr/textAppearanceTitleLarge"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toStartOf="@id/tvRating"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvName" />
+
+    <TextView
+        android:id="@+id/tvRating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_m"
+        android:text="@string/sample_rating"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvPrice"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toEndOf="@id/tvPrice" />
+
+    <TextView
+        android:id="@+id/tvAllergensTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:text="@string/detail_allergens_title"
+        android:textAppearance="?attr/textAppearanceTitleSmall"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvPrice" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_description"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvAllergensTitle" />
+
+    <!-- Left column (start .. 50%): quantity stepper -->
+    <TextView
+        android:id="@+id/tvQtyLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:layout_marginEnd="@dimen/space_s"
+        android:text="@string/detail_quantity"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        app:layout_constraintEnd_toStartOf="@id/glMid"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvDescription" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMinus"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
+        android:layout_width="@dimen/touch_target"
+        android:layout_height="@dimen/touch_target"
+        android:contentDescription="@string/cd_decrease"
+        app:icon="@drawable/ic_remove"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/tvQtyLabel" />
+
+    <TextView
+        android:id="@+id/tvQty"
+        android:layout_width="@dimen/touch_target"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/sample_qty"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        app:layout_constraintBottom_toBottomOf="@id/btnMinus"
+        app:layout_constraintStart_toEndOf="@id/btnMinus"
+        app:layout_constraintTop_toTopOf="@id/btnMinus" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPlus"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
+        android:layout_width="@dimen/touch_target"
+        android:layout_height="@dimen/touch_target"
+        android:contentDescription="@string/cd_increase"
+        app:icon="@drawable/ic_add"
+        app:layout_constraintStart_toEndOf="@id/tvQty"
+        app:layout_constraintTop_toTopOf="@id/btnMinus" />
+
+    <!-- Right column (50% .. end): stock left today -->
+    <TextView
+        android:id="@+id/tvStockLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_s"
+        android:text="@string/detail_stock"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toEndOf="@id/glMid"
+        app:layout_constraintTop_toTopOf="@id/tvQtyLabel" />
+
+    <TextView
+        android:id="@+id/tvStock"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_stock"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        app:layout_constraintEnd_toEndOf="@id/tvStockLabel"
+        app:layout_constraintStart_toStartOf="@id/tvStockLabel"
+        app:layout_constraintTop_toBottomOf="@id/tvStockLabel" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierColumns"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="btnMinus,tvStock" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilNote"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:hint="@string/hint_note"
+        app:counterEnabled="true"
+        app:counterMaxLength="200"
+        app:errorEnabled="true"
+        app:layout_constraintEnd_toEndOf="@id/tvStall"
+        app:layout_constraintStart_toStartOf="@id/tvStall"
+        app:layout_constraintTop_toBottomOf="@id/barrierColumns">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Weighted horizontal chain pinned to the bottom: Add (1) + Pre-order (2). -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAddToCart"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height"
+        android:layout_marginStart="@dimen/space_m"
+        android:layout_marginEnd="@dimen/space_s"
+        android:layout_marginBottom="@dimen/space_m"
+        android:text="@string/action_add_to_cart"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnPreorder"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPreorder"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height"
+        android:layout_marginEnd="@dimen/space_m"
+        android:text="@string/action_preorder"
+        app:layout_constraintBottom_toBottomOf="@id/btnAddToCart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="2"
+        app:layout_constraintStart_toEndOf="@id/btnAddToCart" />
+</androidx.constraintlayout.widget.ConstraintLayout>

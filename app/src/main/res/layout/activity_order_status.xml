@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Screen 5: Order status. Five status chips in a spread chain form the timeline;
+     Barrier under the sync banner/timeline; CTA chain (Cancel 1 : Order again 1) pinned bottom. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="@dimen/space_m">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/glTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.08" />
+
+    <TextView
+        android:id="@+id/tvOrderId"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_order_id"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/glTop" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/order_title"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvOrderId" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stepQueued"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:checkable="false"
+        android:text="@string/status_queued"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/stepConfirmed"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stepConfirmed"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:checkable="false"
+        android:text="@string/status_confirmed"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/stepPreparing"
+        app:layout_constraintStart_toEndOf="@id/stepQueued"
+        app:layout_constraintTop_toTopOf="@id/stepQueued" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stepPreparing"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:checkable="false"
+        android:text="@string/status_preparing"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/stepReady"
+        app:layout_constraintStart_toEndOf="@id/stepConfirmed"
+        app:layout_constraintTop_toTopOf="@id/stepQueued" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stepReady"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:checkable="false"
+        android:text="@string/status_ready"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@id/stepDone"
+        app:layout_constraintStart_toEndOf="@id/stepPreparing"
+        app:layout_constraintTop_toTopOf="@id/stepQueued" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/stepDone"
+        style="@style/Widget.Material3.Chip.Assist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_xs"
+        android:checkable="false"
+        android:text="@string/status_completed"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/stepReady"
+        app:layout_constraintTop_toTopOf="@id/stepQueued" />
+
+    <TextView
+        android:id="@+id/tvSyncBanner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_s"
+        android:background="?attr/colorTertiaryContainer"
+        android:padding="@dimen/space_s"
+        android:text="@string/order_sync_pending"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        android:textColor="?attr/colorOnTertiaryContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stepQueued" />
+
+    <!-- Barrier: whatever is lowest of the timeline and the (optional, GONE-able) sync banner. -->
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="stepQueued,stepConfirmed,stepPreparing,stepReady,stepDone,tvSyncBanner" />
+
+    <TextView
+        android:id="@+id/tvPickupLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:text="@string/order_pickup_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/barrierStatus" />
+
+    <TextView
+        android:id="@+id/tvPickup"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_pickup"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPickupLabel" />
+
+    <TextView
+        android:id="@+id/tvItemsLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_m"
+        android:text="@string/order_items_label"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
+        app:layout_constraintEnd_toStartOf="@id/tvOrderTotal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvPickup" />
+
+    <TextView
+        android:id="@+id/tvOrderTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_total"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
+        android:textColor="?attr/colorPrimary"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvItemsLabel"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvItems"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginVertical="@dimen/space_s"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/btnCancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvItemsLabel"
+        tools:itemCount="2"
+        tools:listitem="@layout/item_cart" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCancel"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height"
+        android:layout_marginEnd="@dimen/space_s"
+        android:layout_marginBottom="@dimen/space_m"
+        android:text="@string/action_cancel_order"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnReorder"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnReorder"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/button_height"
+        android:text="@string/action_order_again"
+        app:layout_constraintBottom_toBottomOf="@id/btnCancel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toEndOf="@id/btnCancel" />
+</androidx.constraintlayout.widget.ConstraintLayout>
