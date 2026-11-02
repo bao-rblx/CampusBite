@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph" app:startDestination="@id/homeFragment">
+    <fragment android:id="@+id/loginFragment" android:name="com.campusbite.ui.LoginFragment" android:label="Welcome" />
+    <fragment android:id="@+id/homeFragment" android:name="com.campusbite.ui.DashboardFragment" android:label="Home"><argument android:name="page" app:argType="string" android:defaultValue="home" /></fragment>
+    <fragment android:id="@+id/searchFragment" android:name="com.campusbite.ui.DashboardFragment" android:label="Search"><argument android:name="page" app:argType="string" android:defaultValue="search" /></fragment>
+    <fragment android:id="@+id/cartFragment" android:name="com.campusbite.ui.DashboardFragment" android:label="Cart"><argument android:name="page" app:argType="string" android:defaultValue="cart" /></fragment>
+    <fragment android:id="@+id/ordersFragment" android:name="com.campusbite.ui.DashboardFragment" android:label="Orders"><argument android:name="page" app:argType="string" android:defaultValue="orders" /></fragment>
+    <fragment android:id="@+id/profileFragment" android:name="com.campusbite.ui.DashboardFragment" android:label="Profile"><argument android:name="page" app:argType="string" android:defaultValue="profile" /></fragment>
+    <fragment android:id="@+id/detailFragment" android:name="com.campusbite.ui.DetailFragment" android:label="Details"><argument android:name="id" app:argType="string" /><argument android:name="kind" app:argType="string" android:defaultValue="dish" /></fragment>
+</navigation>
