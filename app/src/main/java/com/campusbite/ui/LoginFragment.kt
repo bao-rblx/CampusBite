@@ -17,12 +17,13 @@ import com.campusbite.databinding.FragmentFormBinding
 import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
-    private var binding: FragmentFormBinding? = null
+    private var _binding: FragmentFormBinding? = null
+    private val binding get() = _binding
     private val vm: CampusViewModel by activityViewModels()
     private var register = false
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         register = state?.getBoolean("register") ?: false
-        return FragmentFormBinding.inflate(inflater, container, false).also { binding = it }.root
+        return FragmentFormBinding.inflate(inflater, container, false).also { _binding = it }.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) { render() }
     private fun render() {
@@ -32,8 +33,8 @@ class LoginFragment : Fragment() {
         box.addView(ImageView(requireContext()).apply { setImageResource(R.drawable.food_rice); scaleType = ImageView.ScaleType.CENTER_CROP; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }, ViewGroup.LayoutParams(-1, requireContext().dp(180)))
         box.label(if (register) "A better lunch\nstarts here." else "Good food.\nZero lunch queues.", 34f, true)
         box.label("Find your campus favourites, order ahead and pick up after class.", 15f)
-        box.button("Explore the demo") { vm.submit { vm.repository.initializeDemo(); vm.auth.demo() } }
-        box.label(if (vm.auth.cloudConfigured) "Or sign in to your campus account" else "Email accounts need a connected Firebase project.", 12f)
+        box.button("Explore the demo") { vm.submit { vm.initializeDemo(); vm.demo() } }
+        box.label(if (vm.cloudConfigured) "Or sign in to your campus account" else "Email accounts need a connected Firebase project.", 12f)
         val name = if (register) box.field("Your name") else null
         val email = box.field("Email address", type = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
         val password = box.field("Password · at least 8 characters", type = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD)
@@ -42,13 +43,13 @@ class LoginFragment : Fragment() {
         password.edit.doAfterTextChanged { password.layout.error = if (it.isNullOrEmpty() || it.length >= 8) null else "Use at least 8 characters" }
         confirmation?.edit?.doAfterTextChanged { confirmation.layout.error = if (it.toString() == password.value) null else "Passwords do not match" }
         val signIn = box.button(if (register) "Create account" else "Sign in") {
-            vm.submit { vm.auth.authenticate(email.value, password.value, name?.value, confirmation?.value.orEmpty()) }
+            vm.submit { vm.authenticate(email.value, password.value, name?.value, confirmation?.value.orEmpty()) }
         }
-        signIn.isEnabled = vm.auth.cloudConfigured
+        signIn.isEnabled = vm.cloudConfigured
         box.button(if (register) "Already have an account? Sign in" else "New here? Create an account") { register = !register; render() }
-        if (!register) box.button("Forgot password") { vm.submit("Password reset email sent.") { vm.auth.resetPassword(email.value) } }
-        box.label(if (vm.auth.cloudConfigured) "Demo mode uses sample food and local orders." else "Demo is ready to use. Email accounts and live ordering become available when Firebase is connected.", 12f)
+        if (!register) box.button("Forgot password") { vm.submit("Password reset email sent.") { vm.resetPassword(email.value) } }
+        box.label(if (vm.cloudConfigured) "Demo mode uses sample food and local orders." else "Demo is ready to use. Email accounts and live ordering become available when Firebase is connected.", 12f)
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putBoolean("register", register); super.onSaveInstanceState(outState) }
-    override fun onDestroyView() { binding = null; super.onDestroyView() }
+    override fun onDestroyView() { _binding = null; super.onDestroyView() }
 }
