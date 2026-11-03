@@ -20,7 +20,7 @@ object ServiceLocator {
         appContext = context.applicationContext
     }
 
-    val database: AppDatabase by lazy { AppDatabase.build(appContext) }
+    val database: AppDatabase by lazy { AppDatabase.getInstance(appContext) }
     val api: CampusBiteApi by lazy { ApiClient.create() }
     val auth by lazy { AuthRepository(appContext, database) }
     val repository by lazy { CampusRepository(database, api, auth) { CloudSync.enqueue(appContext) } }

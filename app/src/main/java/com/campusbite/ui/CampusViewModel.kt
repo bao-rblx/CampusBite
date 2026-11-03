@@ -7,6 +7,7 @@ import com.campusbite.di.ServiceLocator
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import com.campusbite.data.local.entity.OrderItemSnapshot
 
 data class CampusState(
     val user: UserEntity? = null,
@@ -19,15 +20,15 @@ data class CampusState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CampusViewModel : ViewModel() {
-    val repository = ServiceLocator.repository
-    val auth = ServiceLocator.auth
-    private val db = ServiceLocator.database
+    // The View layer never sees a Repository; it talks to this ViewModel only.
+    private val repository = ServiceLocator.repository
+    private val auth = ServiceLocator.auth
     val busy = MutableStateFlow(false)
     private val events = Channel<String>(Channel.BUFFERED)
     val messages = events.receiveAsFlow()
-    private val catalog = combine(db.stallDao().observeAll(), db.dishDao().observe(), db.slotDao().observeAll()) { s, d, p -> Triple(s, d, p) }
+    private val catalog = combine(repository.observeStalls(), repository.observeDishes(), repository.observeSlots()) { s, d, p -> Triple(s, d, p) }
     val state = auth.uid.flatMapLatest { uid ->
-        if (uid == null) flowOf(CampusState()) else combine(catalog, db.userDao().observe(uid), db.cartDao().observe(uid), db.orderDao().observeAll(uid)) { data, user, cart, orders ->
+        if (uid == null) flowOf(CampusState()) else combine(catalog, repository.observeUser(uid), repository.observeCart(uid), repository.observeOrders(uid)) { data, user, cart, orders ->
             val demo = uid == com.campusbite.data.AuthRepository.DEMO_UID
             CampusState(user, data.first.filter { it.stallId.startsWith("demo-") == demo },
                 data.second.filter { it.dishId.startsWith("demo-") == demo }, cart, orders,
@@ -61,6 +62,34 @@ class CampusViewModel : ViewModel() {
             finally { busy.value = false }
         }
     }
+
+    // ---- Session (AuthRepository) ----
+    val uid: StateFlow<String?> get() = auth.uid
+    val isDemo: Boolean get() = auth.isDemo
+    val cloudConfigured: Boolean get() = auth.cloudConfigured
+    suspend fun demo() = auth.demo()
+    suspend fun authenticate(email: String, password: String, name: String?, confirmation: String) = auth.authenticate(email, password, name, confirmation)
+    suspend fun resetPassword(email: String) = auth.resetPassword(email)
+    suspend fun saveProfile(name: String, favouriteStall: String?, notifications: Boolean) = auth.saveProfile(name, favouriteStall, notifications)
+    suspend fun logout() = auth.logout()
+    suspend fun deleteAccount() = auth.deleteAccount()
+
+    // ---- Catalogue, cart, orders, reviews (CampusRepository -> Room) ----
+    suspend fun initializeDemo() = repository.initializeDemo()
+    suspend fun refresh() = repository.refresh()
+    suspend fun favourite(dish: DishEntity) = repository.favourite(dish)
+    suspend fun add(dishId: String, quantity: Int = 1, note: String? = null) = repository.add(dishId, quantity, note)
+    suspend fun quantity(item: CartEntity, value: Int) = repository.quantity(item, value)
+    suspend fun restore(item: CartEntity) = repository.restore(item)
+    suspend fun checkout(selections: Map<String, String>): List<String> = repository.checkout(selections)
+    fun items(order: OrderEntity): List<OrderItemSnapshot> = repository.items(order)
+    suspend fun reorder(order: OrderEntity) = repository.reorder(order)
+    suspend fun cancel(id: String) = repository.cancel(id)
+    suspend fun advanceDemo(id: String) = repository.advanceDemo(id)
+    suspend fun deleteCancelled(order: OrderEntity) = repository.deleteCancelled(order)
+    suspend fun review(dishId: String, rating: Int, comment: String, deleted: Boolean = false) = repository.review(dishId, rating, comment, deleted)
+    fun watchReviews(dishId: String) = ServiceLocator.cloud.watchReviews(dishId)
+    fun reviewsFor(dishId: String): Flow<List<ReviewEntity>> = repository.observeReviews(dishId)
     fun message(text: String) { viewModelScope.launch { events.send(text) } }
     override fun onCleared() { ServiceLocator.cloud.stop() }
 }

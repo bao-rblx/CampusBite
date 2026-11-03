@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(data) { return signedIn() && data.userId == request.auth.uid; }
+    function orderPath(id) { return /databases/$(database)/documents/orders/$(id); }
+    function slotPath(id) { return /databases/$(database)/documents/slots/$(id); }
+
+    match /orders/{id} {
+      allow read: if owner(resource.data);
+      allow create: if owner(request.resource.data)
+        && request.resource.data.keys().hasOnly(['userId', 'stallId', 'slotId', 'pickupWindow', 'itemsJson', 'totalAmount', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.status == 'QUEUED'
+        && request.resource.data.itemsJson is string && request.resource.data.itemsJson.size() <= 50000
+        && request.resource.data.totalAmount is int && request.resource.data.totalAmount >= 0
+        && request.resource.data.createdAt is int && request.resource.data.updatedAt is int
+        && get(slotPath(request.resource.data.slotId)).data.stallId == request.resource.data.stallId
+        && get(slotPath(request.resource.data.slotId)).data.startsAt > request.time.toMillis()
+        && getAfter(slotPath(request.resource.data.slotId)).data.bookedCount == get(slotPath(request.resource.data.slotId)).data.bookedCount + 1
+        && getAfter(slotPath(request.resource.data.slotId)).data.lastOrderId == id;
+      allow update: if owner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && resource.data.status == 'QUEUED' && request.resource.data.status == 'CANCELLED'
+        && request.resource.data.updatedAt is int
+        && getAfter(slotPath(resource.data.slotId)).data.bookedCount == get(slotPath(resource.data.slotId)).data.bookedCount - 1
+        && getAfter(slotPath(resource.data.slotId)).data.lastOrderId == id;
+      allow delete: if owner(resource.data) && resource.data.status == 'CANCELLED';
+    }
+
+    match /slots/{slotId} {
+      allow read: if signedIn();
+      // Only the trusted admin seed script creates pickup slots.
+      allow create, delete: if false;
+      allow update: if signedIn()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bookedCount', 'lastOrderId'])
+        && request.resource.data.bookedCount is int
+        && request.resource.data.bookedCount >= 0
+        && request.resource.data.bookedCount <= resource.data.capacity
+        && validReservation(request.resource.data.lastOrderId);
+      function validReservation(orderId) {
+        let nextOrder = getAfter(orderPath(orderId)).data;
+        return owner(nextOrder) && nextOrder.slotId == slotId && (
+          (!exists(orderPath(orderId)) && nextOrder.status == 'QUEUED'
+            && resource.data.startsAt > request.time.toMillis()
+            && request.resource.data.bookedCount == resource.data.bookedCount + 1)
+          || (exists(orderPath(orderId)) && get(orderPath(orderId)).data.status == 'QUEUED'
+            && nextOrder.status == 'CANCELLED'
+            && request.resource.data.bookedCount == resource.data.bookedCount - 1)
+        );
+      }
+    }
+
+    match /reviews/{id} {
+      allow read: if signedIn();
+      allow create: if validReview() && owner(request.resource.data);
+      allow update: if validReview() && owner(resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.dishId == resource.data.dishId
+        && request.resource.data.createdAt == resource.data.createdAt;
+      // Keep deletion tombstones so every device can observe deletion.
+      allow delete: if false;
+      function validReview() {
+        return request.resource.data.keys().hasOnly(['dishId', 'userId', 'authorName', 'rating', 'comment', 'isDeleted', 'createdAt', 'updatedAt'])
+          && id == request.resource.data.userId + '-' + request.resource.data.dishId
+          && request.resource.data.rating is int && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+          && request.resource.data.comment is string && request.resource.data.comment.size() <= 1000
+          && request.resource.data.authorName is string && request.resource.data.authorName.size() <= 100
+          && request.resource.data.isDeleted is bool
+          && request.resource.data.createdAt is int && request.resource.data.updatedAt is int;
+      }
+    }
+  }
+}
