@@ -51,9 +51,22 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `slots` (`slotId` TEXT NOT NULL, `stallId` TEXT NOT NULL, `label` TEXT NOT NULL, `startsAt` INTEGER NOT NULL, `capacity` INTEGER NOT NULL, `bookedCount` INTEGER NOT NULL, PRIMARY KEY(`slotId`))")
             }
         }
-        fun build(context: Context): AppDatabase =
-            Room.databaseBuilder(context, AppDatabase::class.java, "CampusBite_DB")
-                .addMigrations(MIGRATION_1_2)
-                .build()
+        const val NAME = "CampusBite_DB"
+
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        /**
+         * Thread-safe singleton (double-checked locking). @Volatile makes the
+         * write to INSTANCE visible to every thread at once; synchronized makes
+         * sure only one thread can build the database.
+         */
+        fun getInstance(context: Context): AppDatabase =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, NAME)
+                    .addMigrations(MIGRATION_1_2)
+                    .build()
+                    .also { INSTANCE = it }
+            }
     }
 }
