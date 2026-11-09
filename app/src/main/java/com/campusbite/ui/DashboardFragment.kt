@@ -33,6 +33,7 @@ class DashboardFragment : Fragment() {
     private val vm: CampusViewModel by activityViewModels()
     private lateinit var adapter: CampusAdapter
     private var latest = CampusState()
+    private var catalogState: UiState<Unit> = UiState.Loading
     private val page get() = arguments?.getString("page") ?: "home"
     private var query = ""
     private var category = "All"
@@ -59,7 +60,7 @@ class DashboardFragment : Fragment() {
         b.searchBox.show(page == "home" || page == "search")
         b.search.setText(query)
         b.search.doAfterTextChanged { query = it.toString(); render() }
-        b.refresh.setOnRefreshListener { vm.action { try { vm.refresh() } finally { binding?.refresh?.isRefreshing = false } } }
+        b.refresh.setOnRefreshListener { vm.loadCatalog(); binding?.refresh?.isRefreshing = false }
         b.refresh.isEnabled = page == "home" || page == "search"
         if (page == "cart") ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(r: RecyclerView, h: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
@@ -71,8 +72,10 @@ class DashboardFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch { viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             launch { vm.state.collect { latest = it; render() } }
             launch { vm.busy.collect { binding?.primary?.isEnabled = !it } }
+            launch { vm.catalogState.collect { catalogState = it; render() } }
         } }
         filters()
+        if (page == "home" || page == "search") vm.loadCatalog()
     }
 
     private fun filters() {
@@ -99,9 +102,19 @@ class DashboardFragment : Fragment() {
     private fun render() {
         val b = binding ?: return
         b.eyebrow.text = if (vm.isDemo) "CAMPUSBITE  /  DEMO" else "CAMPUSBITE  /  PICK UP & GO"
+        b.primary.show(false)
+        // Three-state networked UI: Loading spinner, Error banner, otherwise Success content.
+        b.loading.show(false)
+        b.errorBanner.show(false)
+        if (page == "home" || page == "search") {
+            when (val catalog = catalogState) {
+                is UiState.Loading -> { b.loading.show(true); adapter.submitList(emptyList()); return }
+                is UiState.Error -> { b.errorBanner.text = catalog.message; b.errorBanner.show(true) }
+                is UiState.Success -> Unit
+            }
+        }
         val categories = latest.dishes.map { it.category }.distinct().sorted()
         if (categories != visibleCategories) { visibleCategories = categories; filters() }
-        b.primary.show(false)
         val rows = mutableListOf<DisplayRow>()
         fun stall(id: String) = latest.stalls.find { it.stallId == id }?.name ?: "Campus stall"
         when (page) {
