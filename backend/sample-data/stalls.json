@@ -1,0 +1,26 @@
+[
+  {
+    "id": "rice",
+    "name": "Bếp Nhà",
+    "location": "Building A · Ground floor",
+    "imageUrl": "",
+    "openHours": "07:00–19:00",
+    "isOpen": true
+  },
+  {
+    "id": "noodle",
+    "name": "Noodle Corner",
+    "location": "Building B · Courtyard",
+    "imageUrl": "",
+    "openHours": "07:00–19:00",
+    "isOpen": true
+  },
+  {
+    "id": "cafe",
+    "name": "Campus Café",
+    "location": "Library · Ground floor",
+    "imageUrl": "",
+    "openHours": "07:00–19:00",
+    "isOpen": true
+  }
+]
