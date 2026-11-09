@@ -63,6 +63,16 @@ Security Rules enforce ownership, review validation, capacity bounds, atomic boo
 
 `ui/` contains lifecycle-aware Fragments, ViewBinding, RecyclerView/DiffUtil and an activity-scoped `CampusViewModel` with StateFlow. `data/CampusRepository.kt` owns catalogue, cart, checkout and reviews. `AuthRepository.kt` owns Firebase sessions and cached profiles. `CloudSync.kt` owns listeners and the WorkManager job. `data/local/` contains Room entities and DAOs; `data/remote/` contains Retrofit contracts. The version 1→2 Room migration preserves the original six tables and adds pickup slots.
 
+## Milestone 4 — Network layer, REST API & cloud services
+
+This milestone connects the app to live services and hardens the MVVM data flow, developed on the `feature/network-cloud-integration` branch by four vertical slices.
+
+- **REST network layer (Retrofit + Coroutines).** `data/remote/ApiClient.kt` builds a Retrofit client with a logging interceptor, a retrying interceptor and 10s/15s timeouts. `CampusBiteApi` declares `GET /stalls`, `GET /menus`, `GET /menus?stallId=` and `GET /menus/{id}`. `CampusRepository.refresh()` performs every request with `withContext(Dispatchers.IO)`, parses JSON through Gson DTOs and upserts into Room, so the UI never blocks the main thread and never calls the API directly.
+- **Three-state UI.** `ui/UiState.kt` defines `Loading` / `Success` / `Error`. `CampusViewModel` exposes `catalogState`, and `DashboardFragment` shows an indeterminate `ProgressBar` while loading, a red error banner with a retry on failure, and the `RecyclerView` on success — all through ViewBinding.
+- **Firebase Authentication.** `AuthRepository` signs up, signs in, resets passwords, signs out and deletes accounts on `Dispatchers.IO`. Sessions persist across app restarts through Firebase's current user plus `EncryptedSharedPreferences` (AES-256).
+- **Cloud sync.** `CloudSync` runs real-time Firestore listeners and a WorkManager job with exponential backoff; slot booking and cancellation use Firestore transactions and are guarded by Security Rules. `ui/NetworkMonitor.kt` tracks validated connectivity and `MainActivity` shows an offline banner in Airplane mode while cached Room data stays browsable.
+- **Asynchronous images.** `ui/ImageLoader.kt` centralises Glide loading with a vector `placeholder`, an `error` fallback and `DiskCacheStrategy.AUTOMATIC` (memory + disk cache) for the RecyclerView and the dish detail screen.
+
 ## Verification
 
 ```powershell
