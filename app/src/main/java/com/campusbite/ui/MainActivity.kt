@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        NetworkMonitor.start(this)
 
         // Edge-to-edge (targetSdk 35+): keep content clear of the status bar.
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
@@ -65,6 +66,7 @@ class MainActivity : AppCompatActivity() {
                 val count = state.cart.sumOf { it.quantity }
                 if (count == 0) binding.bottomNav.removeBadge(R.id.cartFragment) else binding.bottomNav.getOrCreateBadge(R.id.cartFragment).number = count
             } }
+            launch { NetworkMonitor.online.collect { online -> binding.offlineBanner.show(!online) } }
             launch { vm.messages.collect {
                 messageBar?.dismiss()
                 messageBar = Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).apply {
