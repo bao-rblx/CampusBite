@@ -1,0 +1,11 @@
+{
+  "id": "m201",
+  "stallId": "s-noodle-corner",
+  "name": "Phở bò",
+  "category": "Noodles",
+  "price": 40000,
+  "imageUrl": "https://picsum.photos/seed/pho-bo/600/400",
+  "description": "Slow-simmered beef broth, rice noodles, fresh herbs and tender beef.",
+  "avgRating": 4.8,
+  "isAvailable": true
+}
