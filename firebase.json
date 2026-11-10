@@ -1,0 +1,5 @@
+{
+  "firestore": { "rules": "firestore.rules" },
+  "functions": [{ "source": "backend/functions", "codebase": "campusbite" }],
+  "emulators": { "firestore": { "port": 18080 }, "ui": { "enabled": false } }
+}
