@@ -26,6 +26,25 @@ class CampusViewModel : ViewModel() {
     val busy = MutableStateFlow(false)
     private val events = Channel<String>(Channel.BUFFERED)
     val messages = events.receiveAsFlow()
+
+    /** Explicit Loading / Success / Error state for the networked catalogue screens. */
+    private val _catalogState = MutableStateFlow<UiState<Unit>>(UiState.Loading)
+    val catalogState: StateFlow<UiState<Unit>> = _catalogState.asStateFlow()
+
+    fun loadCatalog() {
+        _catalogState.value = UiState.Loading
+        viewModelScope.launch {
+            try {
+                repository.refresh()
+                _catalogState.value = UiState.Success(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _catalogState.value = UiState.Error(e.localizedMessage ?: "Could not load the menu. Check your connection and try again.")
+            }
+        }
+    }
+
     private val catalog = combine(repository.observeStalls(), repository.observeDishes(), repository.observeSlots()) { s, d, p -> Triple(s, d, p) }
     val state = auth.uid.flatMapLatest { uid ->
         if (uid == null) flowOf(CampusState()) else combine(catalog, repository.observeUser(uid), repository.observeCart(uid), repository.observeOrders(uid)) { data, user, cart, orders ->
