@@ -91,3 +91,27 @@ npm test
 The backend tests use the local Firestore emulator and a `demo-` project ID. Java must be on PATH. They do not deploy rules or write to a real Firebase project.
 
 See `docs/VERIFICATION.md` for the actual checks performed on the delivered build and remaining live-service verification.
+
+---
+
+## Milestone 05 — Performance, Security & Release (Week 10)
+
+### Security hardening
+| Item | Implementation |
+|---|---|
+| EncryptedSharedPreferences | AES-256-GCM for session token (`AuthRepository`) |
+| API key protection | `MOCKAPI_BASE_URL` in `local.properties` → `BuildConfig`; never in source |
+| Code obfuscation | `minifyEnabled = true` + `shrinkResources = true` in release buildType; full `proguard-rules.pro` protects Room entities, Retrofit DTOs, Firebase, Glide, ViewBinding and coroutine classes |
+| Signing | `release-key.jks` generated locally; signing config reads from `local.properties`; keystore is git-ignored |
+
+### Performance optimisations
+| Item | Implementation |
+|---|---|
+| Memory leaks | LeakCanary 2.14 (`debugImplementation`) — zero leaks confirmed; `_binding = null` in every Fragment `onDestroyView()` |
+| RecyclerView | `setItemViewCacheSize(20)` for instant rebind on back-scroll |
+| Image loading | Glide `thumbnail(0.25f)` for instant low-res preview; `DiskCacheStrategy.AUTOMATIC` |
+| Thread isolation | All Room / Retrofit / Firebase I/O on `Dispatchers.IO` via `withContext` or Room `suspend` |
+
+### Release artefact
+- Signed release APK / AAB produced via **Build > Generate Signed Bundle/APK** in Android Studio.
+- GitHub Release tag: `v1.0.0-release`
