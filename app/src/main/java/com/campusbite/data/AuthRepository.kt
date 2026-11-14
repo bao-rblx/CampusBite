@@ -9,9 +9,11 @@ import com.campusbite.data.local.entity.UserEntity
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.UserProfileChangeRequest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class AuthRepository(context: Context, private val db: AppDatabase) {
     val cloudConfigured = FirebaseApp.getApps(context).isNotEmpty()
@@ -23,6 +25,9 @@ class AuthRepository(context: Context, private val db: AppDatabase) {
     private val _uid = MutableStateFlow(if (prefs.getBoolean("demo", false)) DEMO_UID else if (cloudConfigured) firebase.currentUser?.uid else null)
     val uid = _uid.asStateFlow()
     val isDemo get() = _uid.value == DEMO_UID
+
+    /** True when a Firebase session was restored automatically on app launch. */
+    val hasPersistedSession get() = cloudConfigured && !prefs.getBoolean("demo", false) && firebase.currentUser != null
 
     suspend fun demo() {
         if (db.userDao().get(DEMO_UID) == null) db.userDao().upsert(UserEntity(DEMO_UID, "Campus Explorer", "demo@campusbite.local", null, null, true))
@@ -38,10 +43,15 @@ class AuthRepository(context: Context, private val db: AppDatabase) {
             require(name.trim().length in 2..100) { "Enter a name between 2 and 100 characters." }
             require(password == confirmation) { "Passwords do not match." }
         }
-        val result = if (name == null) firebase.signInWithEmailAndPassword(email.trim(), password).await()
+        // Firebase Authentication calls run off the main thread on Dispatchers.IO.
+        val result = withContext(Dispatchers.IO) {
+            if (name == null) firebase.signInWithEmailAndPassword(email.trim(), password).await()
             else firebase.createUserWithEmailAndPassword(email.trim(), password).await()
+        }
         val user = requireNotNull(result.user)
-        if (name != null) user.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(name.trim()).build()).await()
+        if (name != null) withContext(Dispatchers.IO) {
+            user.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(name.trim()).build()).await()
+        }
         val cached = db.userDao().get(user.uid)
         db.userDao().upsert(cached?.copy(email = user.email.orEmpty()) ?: UserEntity(user.uid,
             user.displayName ?: name ?: email.substringBefore('@'), user.email.orEmpty(), user.photoUrl?.toString(), null, true))
@@ -53,7 +63,7 @@ class AuthRepository(context: Context, private val db: AppDatabase) {
     suspend fun resetPassword(email: String) {
         require(cloudConfigured) { "Password reset requires a connected Firebase project." }
         require(android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) { "Enter your email first." }
-        firebase.sendPasswordResetEmail(email.trim()).await()
+        withContext(Dispatchers.IO) { firebase.sendPasswordResetEmail(email.trim()).await() }
     }
 
     suspend fun saveProfile(name: String, favouriteStall: String?, notifications: Boolean) {
@@ -74,7 +84,7 @@ class AuthRepository(context: Context, private val db: AppDatabase) {
         val id = requireNotNull(uid.value)
         if (!isDemo) {
             // May require recent login. If it fails, retain local data and the session.
-            requireNotNull(firebase.currentUser).delete().await()
+            withContext(Dispatchers.IO) { requireNotNull(firebase.currentUser).delete().await() }
         }
         db.withTransaction {
             db.cartDao().clear(id)

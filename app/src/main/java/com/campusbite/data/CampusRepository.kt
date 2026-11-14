@@ -8,9 +8,11 @@ import com.campusbite.data.remote.CampusBiteApi
 import com.campusbite.data.remote.dto.toEntity
 import com.campusbite.domain.OrderRules
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.UUID
 
 class CampusRepository(private val db: AppDatabase, private val api: CampusBiteApi, val auth: AuthRepository,
@@ -44,8 +46,10 @@ class CampusRepository(private val db: AppDatabase, private val api: CampusBiteA
 
     suspend fun refresh() {
         if (!catalogConfigured || auth.isDemo) { initialize(); return }
-        val stalls = api.getStalls().map { it.toEntity() }
-        val dishes = api.getMenus().map { it.toEntity() }
+        // Network I/O never touches the main thread: the Retrofit calls run on Dispatchers.IO.
+        val (stalls, dishes) = withContext(Dispatchers.IO) {
+            api.getStalls().map { it.toEntity() } to api.getMenus().map { it.toEntity() }
+        }
         require(dishes.all { dish -> dish.price >= 0 && stalls.any { it.stallId == dish.stallId } }) { "The menu service returned invalid data." }
         db.withTransaction {
             db.stallDao().upsertAll(stalls)

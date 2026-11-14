@@ -9,12 +9,8 @@ import android.widget.ImageView
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.campusbite.R
 import com.campusbite.databinding.FragmentFormBinding
-import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
     private var _binding: FragmentFormBinding? = null
@@ -48,6 +44,7 @@ class LoginFragment : Fragment() {
         signIn.isEnabled = vm.cloudConfigured
         box.button(if (register) "Already have an account? Sign in" else "New here? Create an account") { register = !register; render() }
         if (!register) box.button("Forgot password") { vm.submit("Password reset email sent.") { vm.resetPassword(email.value) } }
+        if (vm.cloudConfigured) box.label("Your session is kept secure on this device, so you stay signed in until you sign out.", 12f)
         box.label(if (vm.cloudConfigured) "Demo mode uses sample food and local orders." else "Demo is ready to use. Email accounts and live ordering become available when Firebase is connected.", 12f)
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putBoolean("register", register); super.onSaveInstanceState(outState) }

@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.campusbite.data.local.entity.DishEntity
 import com.campusbite.databinding.ItemDishBinding
 import com.campusbite.databinding.ItemPanelBinding
@@ -33,7 +32,8 @@ class CampusAdapter(private val action: (String, String) -> Unit) : ListAdapter<
             is DishHolder -> with(holder.binding) {
                 val dish = requireNotNull(row.dish)
                 name.text = dish.name; meta.text = "${row.stall} · ★ ${dish.avgRating}"; price.text = money(dish.price)
-                Glide.with(photo).load(dish.imageUrl.ifBlank { null }).placeholder(foodArt(dish.category)).error(foodArt(dish.category)).into(photo)
+                // Shared Glide loader: placeholder, error fallback and disk/memory cache.
+                ImageLoader.load(photo, dish.imageUrl, dish.category)
                 heart.text = if (dish.isFavourite) "♥" else "♡"
                 heart.contentDescription = if (dish.isFavourite) "Remove ${dish.name} from favourites" else "Save ${dish.name} to favourites"
                 heart.setOnClickListener { action("favourite", dish.dishId) }
