@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude session credentials and sensitive tokens from cloud backup -->
+    <exclude domain="sharedpref" path="auth_prefs.xml" />
+    <exclude domain="database" path="campusbite.db" />
+</full-backup-content>
