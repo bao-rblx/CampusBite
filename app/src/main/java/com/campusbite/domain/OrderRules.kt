@@ -20,5 +20,3 @@ object OrderRules {
 }
 
 fun money(amount: Long): String = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN")).format(amount)
-
-// v1 order rules
