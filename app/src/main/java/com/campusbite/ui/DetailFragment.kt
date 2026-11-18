@@ -12,7 +12,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import com.bumptech.glide.Glide
 import com.campusbite.R
 import com.campusbite.data.local.entity.*
 import com.campusbite.databinding.FragmentFormBinding
@@ -63,7 +62,8 @@ class DetailFragment : Fragment() {
         val dish = state.dishes.find { it.dishId == id } ?: return
         val photo = ImageView(requireContext()).apply { scaleType = ImageView.ScaleType.CENTER_CROP; contentDescription = dish.name }
         box.addView(photo, ViewGroup.LayoutParams(-1, requireContext().dp(220)))
-        Glide.with(this).load(dish.imageUrl.ifBlank { null }).placeholder(foodArt(dish.category)).error(foodArt(dish.category)).into(photo)
+        // Shared Glide loader: placeholder, error fallback and disk/memory cache.
+        ImageLoader.load(photo, dish.imageUrl, dish.category)
         box.label("${dish.category.uppercase()}  ·  ${state.stalls.find { it.stallId == dish.stallId }?.name.orEmpty()}", 12f, true)
         box.label(dish.name, 30f, true)
         val rating = if (reviews.isEmpty()) dish.avgRating.toDouble() else reviews.map { it.rating }.average()
