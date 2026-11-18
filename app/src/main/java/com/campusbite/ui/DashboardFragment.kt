@@ -57,6 +57,8 @@ class DashboardFragment : Fragment() {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() { override fun getSpanSize(position: Int) = if (adapter.currentList.getOrNull(position)?.dish != null) 1 else 2 }
         }
         b.list.layoutManager = manager; b.list.adapter = adapter
+        b.list.setHasFixedSize(false) // row count changes; height does not
+        b.list.setItemViewCacheSize(20)
         b.searchBox.show(page == "home" || page == "search")
         b.search.setText(query)
         b.search.doAfterTextChanged { query = it.toString(); render() }

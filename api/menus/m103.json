@@ -1,0 +1,11 @@
+{
+  "id": "m103",
+  "stallId": "s-canteen-a",
+  "name": "Gỏi cuốn",
+  "category": "Snacks",
+  "price": 20000,
+  "imageUrl": "https://picsum.photos/seed/goi-cuon/600/400",
+  "description": "Two fresh spring rolls with shrimp, greens and peanut dipping sauce.",
+  "avgRating": 4.7,
+  "isAvailable": true
+}
