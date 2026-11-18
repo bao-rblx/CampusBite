@@ -20,6 +20,7 @@ glide = "5.0.9"
 coroutines = "1.11.0"
 firebaseBom = "35.1.0"
 securityCrypto = "1.1.0"
+leakcanary = "2.14"
 junit = "4.13.2"
 
 [libraries]
@@ -46,6 +47,7 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+leakcanary = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]
