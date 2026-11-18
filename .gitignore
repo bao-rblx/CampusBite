@@ -21,3 +21,4 @@ app/release-key.jks
 
 # Local tooling state
 .local/
+gradle/gradle-daemon-jvm.properties
