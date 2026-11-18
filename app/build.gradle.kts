@@ -23,11 +23,11 @@ val localProps = Properties().apply {
 //   STORE_PASS=campusbite2026
 //   KEY_ALIAS=campusbite-key
 //   KEY_PASS=campusbite2026
-val storeFilePath: String? = localProps.getProperty("STORE_FILE")
-val storePass: String?     = localProps.getProperty("STORE_PASS")
-val keyAlias: String?      = localProps.getProperty("KEY_ALIAS")
-val keyPass: String?       = localProps.getProperty("KEY_PASS")
-val hasSigningConfig = storeFilePath != null && storePass != null && keyAlias != null && keyPass != null
+val signStoreFile: String? = localProps.getProperty("STORE_FILE")
+val signStorePass: String? = localProps.getProperty("STORE_PASS")
+val signKeyAlias: String?  = localProps.getProperty("KEY_ALIAS")
+val signKeyPass: String?   = localProps.getProperty("KEY_PASS")
+val hasSigningConfig = signStoreFile != null && signStorePass != null && signKeyAlias != null && signKeyPass != null
 
 android {
     namespace = "com.campusbite"
@@ -53,10 +53,10 @@ android {
     if (hasSigningConfig) {
         signingConfigs {
             create("release") {
-                storeFile     = file(storeFilePath!!)
-                storePassword = storePass
-                keyAlias      = keyAlias
-                keyPassword   = keyPass
+                storeFile     = file(signStoreFile!!)
+                storePassword = signStorePass
+                keyAlias      = signKeyAlias
+                keyPassword   = signKeyPass
             }
         }
     }
