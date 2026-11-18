@@ -1,0 +1,11 @@
+{
+  "id": "m102",
+  "stallId": "s-canteen-a",
+  "name": "Cơm tấm sườn",
+  "category": "Rice",
+  "price": 38000,
+  "imageUrl": "https://picsum.photos/seed/com-tam/600/400",
+  "description": "Broken rice with grilled pork chop, scallion oil and fresh vegetables.",
+  "avgRating": 4.9,
+  "isAvailable": true
+}

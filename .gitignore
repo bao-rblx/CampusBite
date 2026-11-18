@@ -15,3 +15,9 @@ app/google-services.json
 **/*-debug.log
 **/.firebase/
 backend/functions/*service-account*.json
+
+# Release signing key — NEVER commit, keep a secure backup
+app/release-key.jks
+
+# Local tooling state
+.local/

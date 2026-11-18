@@ -16,6 +16,19 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
+// Release signing configuration — keystore is NOT committed (see .gitignore).
+// Generate it once with: scripts/generate_keystore.ps1
+// Then add these lines to local.properties (do NOT commit them):
+//   STORE_FILE=release-key.jks
+//   STORE_PASS=campusbite2026
+//   KEY_ALIAS=campusbite-key
+//   KEY_PASS=campusbite2026
+val signStoreFile: String? = localProps.getProperty("STORE_FILE")
+val signStorePass: String? = localProps.getProperty("STORE_PASS")
+val signKeyAlias: String?  = localProps.getProperty("KEY_ALIAS")
+val signKeyPass: String?   = localProps.getProperty("KEY_PASS")
+val hasSigningConfig = signStoreFile != null && signStorePass != null && signKeyAlias != null && signKeyPass != null
+
 android {
     namespace = "com.campusbite"
     compileSdk = 37
@@ -25,21 +38,43 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Set MOCKAPI_BASE_URL in local.properties, e.g. https://xxxx.mockapi.io/api/v1/
+        // The catalogue base URL is injected through BuildConfig; local.properties may override it
+        // (MOCKAPI_BASE_URL=...) without editing source. The default is the public HTTPS catalogue
         buildConfigField(
             "String",
             "MOCKAPI_BASE_URL",
-            "\"${localProps.getProperty("MOCKAPI_BASE_URL", "https://example.mockapi.io/api/v1/")}\""
+            "\"${localProps.getProperty("MOCKAPI_BASE_URL", "https://cdn.jsdelivr.net/gh/bao-rblx/CampusBite@main/api/")}\""
         )
+    }
+
+    if (hasSigningConfig) {
+        signingConfigs {
+            create("release") {
+                storeFile     = file(signStoreFile!!)
+                storePassword = signStorePass
+                keyAlias      = signKeyAlias
+                keyPassword   = signKeyPass
+            }
+        }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // M5: Enable R8 shrinking and obfuscation for the release build.
+            isMinifyEnabled   = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (hasSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+        debug {
+            // Debug keeps shrinking off so stack traces are readable.
+            isMinifyEnabled   = false
+            isShrinkResources = false
         }
     }
 
@@ -88,6 +123,9 @@ dependencies {
     implementation(libs.coroutines.play.services)
 
     implementation(libs.security.crypto)
+
+    // M5: LeakCanary — detects memory leaks in debug builds only (not shipped in release)
+    debugImplementation(libs.leakcanary)
 
     testImplementation(libs.junit)
     androidTestImplementation("androidx.test:runner:1.6.2")
