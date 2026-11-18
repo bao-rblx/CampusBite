@@ -22,3 +22,5 @@ app/release-key.jks
 # Local tooling state
 .local/
 gradle/gradle-daemon-jvm.properties
+# Local build logs
+build_*.log
