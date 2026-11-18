@@ -1,0 +1,11 @@
+{
+  "id": "m101",
+  "stallId": "s-canteen-a",
+  "name": "Cơm gà nướng",
+  "category": "Rice",
+  "price": 35000,
+  "imageUrl": "https://picsum.photos/seed/com-ga/600/400",
+  "description": "Grilled lemongrass chicken, jasmine rice, cucumber and pickled vegetables.",
+  "avgRating": 4.8,
+  "isAvailable": true
+}
