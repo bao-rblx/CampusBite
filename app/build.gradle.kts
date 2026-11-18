@@ -41,12 +41,12 @@ android {
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Set MOCKAPI_BASE_URL in local.properties, e.g. https://xxxx.mockapi.io/api/v1/
-        // The key is never hardcoded in source; it is injected via BuildConfig at compile time.
+        // The catalogue base URL is injected through BuildConfig; local.properties may override it
+        // (MOCKAPI_BASE_URL=...) without editing source. The default is the public HTTPS catalogue
         buildConfigField(
             "String",
             "MOCKAPI_BASE_URL",
-            "\"${localProps.getProperty("MOCKAPI_BASE_URL", "https://example.mockapi.io/api/v1/")}\""
+            "\"${localProps.getProperty("MOCKAPI_BASE_URL", "https://cdn.jsdelivr.net/gh/bao-rblx/CampusBite@main/api/")}\""
         )
     }
 

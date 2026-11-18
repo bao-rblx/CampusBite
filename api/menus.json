@@ -1,0 +1,112 @@
+[
+  {
+    "id": "m101",
+    "stallId": "s-canteen-a",
+    "name": "Cơm gà nướng",
+    "category": "Rice",
+    "price": 35000,
+    "imageUrl": "https://picsum.photos/seed/com-ga/600/400",
+    "description": "Grilled lemongrass chicken, jasmine rice, cucumber and pickled vegetables.",
+    "avgRating": 4.8,
+    "isAvailable": true
+  },
+  {
+    "id": "m102",
+    "stallId": "s-canteen-a",
+    "name": "Cơm tấm sườn",
+    "category": "Rice",
+    "price": 38000,
+    "imageUrl": "https://picsum.photos/seed/com-tam/600/400",
+    "description": "Broken rice with grilled pork chop, scallion oil and fresh vegetables.",
+    "avgRating": 4.9,
+    "isAvailable": true
+  },
+  {
+    "id": "m103",
+    "stallId": "s-canteen-a",
+    "name": "Gỏi cuốn",
+    "category": "Snacks",
+    "price": 20000,
+    "imageUrl": "https://picsum.photos/seed/goi-cuon/600/400",
+    "description": "Two fresh spring rolls with shrimp, greens and peanut dipping sauce.",
+    "avgRating": 4.7,
+    "isAvailable": true
+  },
+  {
+    "id": "m201",
+    "stallId": "s-noodle-corner",
+    "name": "Phở bò",
+    "category": "Noodles",
+    "price": 40000,
+    "imageUrl": "https://picsum.photos/seed/pho-bo/600/400",
+    "description": "Slow-simmered beef broth, rice noodles, fresh herbs and tender beef.",
+    "avgRating": 4.8,
+    "isAvailable": true
+  },
+  {
+    "id": "m202",
+    "stallId": "s-noodle-corner",
+    "name": "Bún thịt nướng",
+    "category": "Noodles",
+    "price": 35000,
+    "imageUrl": "https://picsum.photos/seed/bun-thit/600/400",
+    "description": "Rice vermicelli with grilled pork, herbs and a tangy dressing.",
+    "avgRating": 4.7,
+    "isAvailable": true
+  },
+  {
+    "id": "m203",
+    "stallId": "s-noodle-corner",
+    "name": "Mì xào rau củ",
+    "category": "Noodles",
+    "price": 28000,
+    "imageUrl": "https://picsum.photos/seed/mi-xao/600/400",
+    "description": "Stir-fried egg noodles with crunchy seasonal vegetables.",
+    "avgRating": 4.5,
+    "isAvailable": true
+  },
+  {
+    "id": "m301",
+    "stallId": "s-campus-cafe",
+    "name": "Cà phê sữa đá",
+    "category": "Drinks",
+    "price": 18000,
+    "imageUrl": "https://picsum.photos/seed/ca-phe/600/400",
+    "description": "Vietnamese iced coffee with condensed milk.",
+    "avgRating": 4.9,
+    "isAvailable": true
+  },
+  {
+    "id": "m302",
+    "stallId": "s-campus-cafe",
+    "name": "Trà đào",
+    "category": "Drinks",
+    "price": 22000,
+    "imageUrl": "https://picsum.photos/seed/tra-dao/600/400",
+    "description": "Peach iced tea with real peach slices.",
+    "avgRating": 4.6,
+    "isAvailable": true
+  },
+  {
+    "id": "m303",
+    "stallId": "s-campus-cafe",
+    "name": "Bánh mì trứng",
+    "category": "Snacks",
+    "price": 20000,
+    "imageUrl": "https://picsum.photos/seed/banh-mi/600/400",
+    "description": "Crisp baguette with egg, cucumber and herbs.",
+    "avgRating": 4.8,
+    "isAvailable": true
+  },
+  {
+    "id": "m304",
+    "stallId": "s-campus-cafe",
+    "name": "Sữa chua trái cây",
+    "category": "Snacks",
+    "price": 18000,
+    "imageUrl": "https://picsum.photos/seed/sua-chua/600/400",
+    "description": "Creamy yogurt topped with seasonal fruit.",
+    "avgRating": 4.6,
+    "isAvailable": false
+  }
+]
