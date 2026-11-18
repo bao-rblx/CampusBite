@@ -8,5 +8,4 @@
     <string name="nav_orders">Orders</string>
     <string name="nav_profile">Profile</string>
 
-    <string name="error_offline">Không có kết nối mạng. Đang hiển thị dữ liệu đã lưu.</string>
 </resources>
