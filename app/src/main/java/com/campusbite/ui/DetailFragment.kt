@@ -16,14 +16,14 @@ import com.bumptech.glide.Glide
 import com.campusbite.R
 import com.campusbite.data.local.entity.*
 import com.campusbite.databinding.FragmentFormBinding
-import com.campusbite.di.ServiceLocator
 import com.campusbite.domain.money
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
 class DetailFragment : Fragment() {
-    private var binding: FragmentFormBinding? = null
+    private var _binding: FragmentFormBinding? = null
+    private val binding get() = _binding
     private val vm: CampusViewModel by activityViewModels()
     private val id get() = requireArguments().getString("id").orEmpty()
     private val kind get() = requireArguments().getString("kind") ?: "dish"
@@ -36,15 +36,15 @@ class DetailFragment : Fragment() {
     private var renderedKey: Any? = null
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         quantity = savedInstanceState?.getInt("quantity", 1) ?: 1; note = savedInstanceState?.getString("note").orEmpty()
-        return FragmentFormBinding.inflate(inflater, container, false).also { binding = it }.root
+        return FragmentFormBinding.inflate(inflater, container, false).also { _binding = it }.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         viewLifecycleOwner.lifecycleScope.launch { viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             launch { vm.state.collect { state = it; render() } }
-            if (kind == "dish") launch { ServiceLocator.database.reviewDao().observeForDish(id).collect { reviews = it; render() } }
+            if (kind == "dish") launch { vm.reviewsFor(id).collect { reviews = it; render() } }
         } }
     }
-    override fun onStart() { super.onStart(); if (kind == "dish") listener = ServiceLocator.cloud.watchReviews(id) }
+    override fun onStart() { super.onStart(); if (kind == "dish") listener = vm.watchReviews(id) }
     override fun onStop() { listener?.remove(); listener = null; super.onStop() }
     private fun render() {
         val box = binding?.content ?: return
@@ -69,7 +69,7 @@ class DetailFragment : Fragment() {
         val rating = if (reviews.isEmpty()) dish.avgRating.toDouble() else reviews.map { it.rating }.average()
         box.label("${money(dish.price)}  ·  ★ ${"%.1f".format(rating)}", 22f, true)
         box.label("Ingredients & allergens", 17f, true); box.label(dish.description, 15f)
-        box.button(if (dish.isFavourite) "♥ Saved to favourites" else "♡ Save to favourites") { vm.action { vm.repository.favourite(dish) } }
+        box.button(if (dish.isFavourite) "♥ Saved to favourites" else "♡ Save to favourites") { vm.action { vm.favourite(dish) } }
         box.label("How many?", 15f, true)
         box.addView(Spinner(requireContext()).apply {
             minimumHeight = context.dp(48)
@@ -81,23 +81,23 @@ class DetailFragment : Fragment() {
             }
         })
         box.field("Note for the stall (optional)", note).edit.doAfterTextChanged { note = it.toString().take(200) }
-        box.button(if (dish.isAvailable) "Add to cart" else "Sold out") { vm.action("Added to your cart.") { vm.repository.add(id, quantity, note) } }.isEnabled = dish.isAvailable
-        box.button("Pre-order →") { vm.action { vm.repository.add(id, quantity, note); if (isAdded) (activity as? MainActivity)?.selectTab(R.id.cartFragment) } }.isEnabled = dish.isAvailable
+        box.button(if (dish.isAvailable) "Add to cart" else "Sold out") { vm.action("Added to your cart.") { vm.add(id, quantity, note) } }.isEnabled = dish.isAvailable
+        box.button("Pre-order →") { vm.action { vm.add(id, quantity, note); if (isAdded) (activity as? MainActivity)?.selectTab(R.id.cartFragment) } }.isEnabled = dish.isAvailable
         box.label("From the campus community", 23f, true)
-        box.button(if (reviews.any { it.userId == vm.auth.uid.value }) "Edit your review" else "Write a review") { editReview() }
+        box.button(if (reviews.any { it.userId == vm.uid.value }) "Edit your review" else "Write a review") { editReview() }
         if (reviews.isEmpty()) box.label("Be the first to share a bite-sized review.", 14f)
         reviews.forEach { review ->
             box.label("${"★".repeat(review.rating)}  ${review.authorName}", 16f, true)
             box.label(review.comment.ifBlank { "Rated ${review.rating} out of 5" }, 14f)
-            if (review.userId == vm.auth.uid.value) box.button("Delete your review") {
-                dialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Delete this review?").setNegativeButton("Keep", null).setPositiveButton("Delete") { _, _ -> vm.action("Review deleted.") { vm.repository.review(id, review.rating, review.comment, true) } }.show()
+            if (review.userId == vm.uid.value) box.button("Delete your review") {
+                dialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Delete this review?").setNegativeButton("Keep", null).setPositiveButton("Delete") { _, _ -> vm.action("Review deleted.") { vm.review(id, review.rating, review.comment, true) } }.show()
             }
         }
     }
     private fun renderOrder(box: LinearLayout) {
         val order = state.orders.find { it.orderId == id }
         if (order == null) { box.label("Loading your order…", 24f, true); return }
-        box.label(if (vm.auth.isDemo) "DEMO ORDER · #${id.take(8)}" else "ORDER #${id.take(8)}", 12f, true)
+        box.label(if (vm.isDemo) "DEMO ORDER · #${id.take(8)}" else "ORDER #${id.take(8)}", 12f, true)
         box.label(when { order.syncState == SyncState.FAILED -> "Pickup unavailable"; order.status == OrderStatus.READY -> "Your food is ready!"; order.status == OrderStatus.CANCELLED -> "Order cancelled"; else -> "A good lunch is on the way." }, 30f, true)
         box.label(state.stalls.find { it.stallId == order.stallId }?.let { "${it.name}\n${it.location}" }.orEmpty(), 18f, true)
         box.label("Pickup: ${order.pickupWindow}", 16f)
@@ -111,26 +111,26 @@ class DetailFragment : Fragment() {
             }
         }
         box.label("On your tray", 20f, true)
-        vm.repository.items(order).forEach { item -> box.label("${item.quantity} × ${item.name}   ${money(item.quantity * item.unitPrice)}${item.note?.takeIf { it.isNotBlank() }?.let { "\n$it" }.orEmpty()}", 15f) }
+        vm.items(order).forEach { item -> box.label("${item.quantity} × ${item.name}   ${money(item.quantity * item.unitPrice)}${item.note?.takeIf { it.isNotBlank() }?.let { "\n$it" }.orEmpty()}", 15f) }
         box.label("Total  ${money(order.totalAmount)}", 24f, true)
         box.label("Pay at pickup · No online payment taken", 13f)
-        box.button("Order again") { vm.action("Added to your cart at current prices.") { vm.repository.reorder(order) } }
+        box.button("Order again") { vm.action("Added to your cart at current prices.") { vm.reorder(order) } }
         if (order.status == OrderStatus.QUEUED) box.button("Cancel order") {
-            dialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Cancel this order?").setMessage("A live cancellation takes effect after the server accepts it. Orders already confirmed by the stall cannot be cancelled.").setNegativeButton("Keep order", null).setPositiveButton("Cancel order") { _, _ -> vm.submit { vm.repository.cancel(id) } }.show()
+            dialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Cancel this order?").setMessage("A live cancellation takes effect after the server accepts it. Orders already confirmed by the stall cannot be cancelled.").setNegativeButton("Keep order", null).setPositiveButton("Cancel order") { _, _ -> vm.submit { vm.cancel(id) } }.show()
         }
-        if (vm.auth.isDemo && order.status !in listOf(OrderStatus.COMPLETED, OrderStatus.CANCELLED)) box.button("Demo: advance order status") { vm.action { vm.repository.advanceDemo(id) } }
-        if (order.status == OrderStatus.CANCELLED && order.syncState == SyncState.SYNCED) box.button("Remove from history") { vm.submit { vm.repository.deleteCancelled(order); if (isAdded) findNavController().popBackStack() } }
+        if (vm.isDemo && order.status !in listOf(OrderStatus.COMPLETED, OrderStatus.CANCELLED)) box.button("Demo: advance order status") { vm.action { vm.advanceDemo(id) } }
+        if (order.status == OrderStatus.CANCELLED && order.syncState == SyncState.SYNCED) box.button("Remove from history") { vm.submit { vm.deleteCancelled(order); if (isAdded) findNavController().popBackStack() } }
     }
     private fun editReview() {
-        val existing = reviews.find { it.userId == vm.auth.uid.value }
+        val existing = reviews.find { it.userId == vm.uid.value }
         val box = LinearLayout(requireContext()).apply { orientation = LinearLayout.VERTICAL; setPadding(context.dp(24), context.dp(10), context.dp(24), context.dp(10)) }
         val rating = RatingBar(requireContext()).apply { numStars = 5; stepSize = 1f; this.rating = (existing?.rating ?: 5).toFloat() }
         box.addView(rating, LinearLayout.LayoutParams(-2, -2))
         val comment = box.field("How was your meal?", existing?.comment.orEmpty(), android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE)
         val reviewDialog = MaterialAlertDialogBuilder(requireContext()).setTitle("Your review").setView(box).setNegativeButton("Cancel", null).setPositiveButton("Save review", null).create()
-        reviewDialog.setOnShowListener { reviewDialog.getButton(-1).setOnClickListener { vm.submit("Review saved.") { vm.repository.review(id, rating.rating.toInt(), comment.value); reviewDialog.dismiss() } } }
+        reviewDialog.setOnShowListener { reviewDialog.getButton(-1).setOnClickListener { vm.submit("Review saved.") { vm.review(id, rating.rating.toInt(), comment.value); reviewDialog.dismiss() } } }
         dialog = reviewDialog; reviewDialog.show()
     }
     override fun onSaveInstanceState(outState: Bundle) { outState.putInt("quantity", quantity); outState.putString("note", note); super.onSaveInstanceState(outState) }
-    override fun onDestroyView() { dialog?.dismiss(); dialog = null; listener?.remove(); renderedKey = null; binding = null; super.onDestroyView() }
+    override fun onDestroyView() { dialog?.dismiss(); dialog = null; listener?.remove(); renderedKey = null; _binding = null; super.onDestroyView() }
 }

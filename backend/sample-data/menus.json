@@ -1,0 +1,134 @@
+[
+  {
+    "id": "chicken",
+    "stallId": "rice",
+    "name": "Cơm gà nướng",
+    "category": "Rice",
+    "price": 35000,
+    "description": "Grilled lemongrass chicken, jasmine rice, cucumber and pickled vegetables. Contains soy and fish sauce.",
+    "avgRating": 4.8,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "pork",
+    "stallId": "rice",
+    "name": "Cơm tấm sườn",
+    "category": "Rice",
+    "price": 38000,
+    "description": "Broken rice with grilled pork chop, scallion oil and fresh vegetables. Contains fish sauce and soy.",
+    "avgRating": 4.9,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "tofu",
+    "stallId": "rice",
+    "name": "Cơm đậu hũ",
+    "category": "Rice",
+    "price": 25000,
+    "description": "Golden tofu, seasonal vegetables and steamed rice. Vegetarian. Contains soy.",
+    "avgRating": 4.6,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "beef",
+    "stallId": "noodle",
+    "name": "Phở bò",
+    "category": "Noodles",
+    "price": 40000,
+    "description": "Slow-simmered beef broth, rice noodles, fresh herbs and tender beef. Contains fish sauce.",
+    "avgRating": 4.8,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "bun",
+    "stallId": "noodle",
+    "name": "Bún thịt nướng",
+    "category": "Noodles",
+    "price": 35000,
+    "description": "Rice vermicelli with grilled pork, herbs and a tangy dressing. Contains peanuts and fish sauce.",
+    "avgRating": 4.7,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "noodle",
+    "stallId": "noodle",
+    "name": "Mì xào rau củ",
+    "category": "Noodles",
+    "price": 28000,
+    "description": "Stir-fried egg noodles with crunchy seasonal vegetables. Contains wheat, egg and soy.",
+    "avgRating": 4.5,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "coffee",
+    "stallId": "cafe",
+    "name": "Cà phê sữa đá",
+    "category": "Drinks",
+    "price": 18000,
+    "description": "Vietnamese iced coffee with condensed milk. Contains milk and caffeine.",
+    "avgRating": 4.9,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "tea",
+    "stallId": "cafe",
+    "name": "Trà đào",
+    "category": "Drinks",
+    "price": 22000,
+    "description": "Peach iced tea with real peach slices. Contains caffeine.",
+    "avgRating": 4.6,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "juice",
+    "stallId": "cafe",
+    "name": "Nước cam",
+    "category": "Drinks",
+    "price": 25000,
+    "description": "Freshly squeezed orange juice. No added sugar.",
+    "avgRating": 4.7,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "rolls",
+    "stallId": "rice",
+    "name": "Gỏi cuốn",
+    "category": "Snacks",
+    "price": 20000,
+    "description": "Two fresh spring rolls with shrimp, greens and peanut dipping sauce. Contains shellfish and peanuts.",
+    "avgRating": 4.7,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "bread",
+    "stallId": "cafe",
+    "name": "Bánh mì trứng",
+    "category": "Snacks",
+    "price": 20000,
+    "description": "Crisp baguette with egg, cucumber and herbs. Contains wheat and egg.",
+    "avgRating": 4.8,
+    "imageUrl": "",
+    "isAvailable": true
+  },
+  {
+    "id": "yogurt",
+    "stallId": "cafe",
+    "name": "Sữa chua trái cây",
+    "category": "Snacks",
+    "price": 18000,
+    "description": "Creamy yogurt topped with seasonal fruit. Contains milk.",
+    "avgRating": 4.6,
+    "imageUrl": "",
+    "isAvailable": true
+  }
+]
