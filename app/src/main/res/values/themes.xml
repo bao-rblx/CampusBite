@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_primary">#AC4627</color>
+    <color name="brand_on_primary">#FFFFFF</color>
+    <color name="brand_secondary">#526449</color>
+
+    <style name="Theme.CampusBite" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/brand_on_primary</item>
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowBackground">#FFFBF5</item>
+        <item name="colorSurface">#FFFBF5</item>
+        <item name="colorSecondaryContainer">#E4EBD9</item>
+        <item name="colorOnSecondaryContainer">#263D26</item>
+    </style>
+</resources>
