@@ -8,7 +8,7 @@ import retrofit2.http.Query
 
 /**
  * CampusBite catalogue service — the live JSON resources published from this repository
- * (/api/*.json, served over HTTPS by the jsDelivr CDN). Exactly 3 read-only endpoints.
+ * (the api folder, served over HTTPS by the jsDelivr CDN). Read-only endpoints only.
  */
 interface CampusBiteApi {
     @GET("stalls.json")
