@@ -77,6 +77,11 @@ class MainActivity : AppCompatActivity() {
         } }
     }
 
+    override fun onDestroy() {
+        NetworkMonitor.stop()
+        super.onDestroy()
+    }
+
     fun selectTab(id: Int, savedOnly: Boolean = false) {
         if (controller.currentDestination?.id == R.id.detailFragment) controller.popBackStack()
         binding.bottomNav.selectedItemId = id
