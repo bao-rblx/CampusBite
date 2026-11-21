@@ -24,15 +24,15 @@ import com.campusbite.data.local.entity.UserEntity
 
 /**
  * CampusBite_DB — single source of truth.
- * Migration policy (owned by the Team Leader): any schema change bumps `version`
- * and adds a Migration; during development fallbackToDestructiveMigration is allowed.
+ * Migration policy: any schema change bumps `version` and ships a real Migration.
+ * There is no destructive fallback, so user data survives every update.
  */
 @Database(
     entities = [
         StallEntity::class, DishEntity::class, CartEntity::class,
         OrderEntity::class, ReviewEntity::class, UserEntity::class, SlotEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -51,6 +51,11 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE TABLE IF NOT EXISTS `slots` (`slotId` TEXT NOT NULL, `stallId` TEXT NOT NULL, `label` TEXT NOT NULL, `startsAt` INTEGER NOT NULL, `capacity` INTEGER NOT NULL, `bookedCount` INTEGER NOT NULL, PRIMARY KEY(`slotId`))")
             }
         }
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `users` ADD COLUMN `role` TEXT NOT NULL DEFAULT 'STUDENT'")
+            }
+        }
         const val NAME = "CampusBite_DB"
 
         @Volatile
@@ -60,11 +65,14 @@ abstract class AppDatabase : RoomDatabase() {
          * Thread-safe singleton (double-checked locking). @Volatile makes the
          * write to INSTANCE visible to every thread at once; synchronized makes
          * sure only one thread can build the database.
+         *
+         * No destructive fallback: every version bump ships a real Migration so
+         * a student's cart, orders and reviews survive an app update.
          */
         fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, NAME)
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                     .build()
                     .also { INSTANCE = it }
             }

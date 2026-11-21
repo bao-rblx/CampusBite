@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <!-- Exclude session credentials and sensitive tokens from cloud backup -->
-    <exclude domain="sharedpref" path="auth_prefs.xml" />
-    <exclude domain="database" path="campusbite.db" />
+    <!-- Exclude the encrypted session store and the Room database from cloud backup.
+         File names must match the real ones: SharedPreferences "session" and Room "CampusBite_DB". -->
+    <exclude domain="sharedpref" path="session.xml" />
+    <exclude domain="database" path="CampusBite_DB" />
+    <exclude domain="database" path="CampusBite_DB-wal" />
+    <exclude domain="database" path="CampusBite_DB-shm" />
 </full-backup-content>

@@ -35,7 +35,9 @@ class PersistenceMigrationTest {
             old.execSQL("INSERT INTO stalls VALUES ('legacy', 'Original stall', 'Campus', '', '07:00–19:00', 1, 1)")
             old.version = 1
         }
-        val db = Room.databaseBuilder(context, AppDatabase::class.java, name).addMigrations(AppDatabase.MIGRATION_1_2).build()
+        val db = Room.databaseBuilder(context, AppDatabase::class.java, name)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .build()
         try {
             assertEquals("Original stall", db.stallDao().getAll().single().name)
             assertTrue(db.slotDao().observeAll().first().isEmpty())

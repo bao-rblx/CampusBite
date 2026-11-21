@@ -1,18 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="brand_primary">#AC4627</color>
+    <color name="brand_primary">#00B14F</color>
     <color name="brand_on_primary">#FFFFFF</color>
-    <color name="brand_secondary">#526449</color>
+    <color name="brand_secondary">#00873D</color>
 
     <style name="Theme.CampusBite" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/brand_primary</item>
-        <item name="colorOnPrimary">@color/brand_on_primary</item>
-        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorPrimary">#00B14F</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorPrimaryContainer">#E6F7ED</item>
+        <item name="colorOnPrimaryContainer">#003817</item>
+        <item name="colorSecondary">#00873D</item>
+        <item name="colorSecondaryContainer">#D7F2E3</item>
+        <item name="colorOnSecondaryContainer">#00210B</item>
+        <item name="colorSurface">#FFFFFF</item>
+        <item name="colorOnSurface">#191C1A</item>
+        <item name="colorSurfaceVariant">#F0F4F1</item>
+        <item name="colorOnSurfaceVariant">#404943</item>
+        <item name="colorOutlineVariant">#E2E8E4</item>
+        <item name="android:windowBackground">#F8FAF8</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:fontFamily">sans</item>
-        <item name="android:windowBackground">#FFFBF5</item>
-        <item name="colorSurface">#FFFBF5</item>
-        <item name="colorSecondaryContainer">#E4EBD9</item>
-        <item name="colorOnSecondaryContainer">#263D26</item>
     </style>
 </resources>

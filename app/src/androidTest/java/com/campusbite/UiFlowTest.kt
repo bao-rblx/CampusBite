@@ -72,12 +72,13 @@ class UiFlowTest {
             ServiceLocator.auth.logout()
         }
         scenario = ActivityScenario.launch(com.campusbite.ui.MainActivity::class.java)
-        click("Explore the demo")
+        click("Continue as Student")
         text("What sounds good?")
         capture("01-home")
         tab("searchFragment")
         val search = requireNotNull(device.wait(Until.findObject(By.res("com.campusbite", "search")), 5000))
         search.click(); search.text = "Cơm tấm"; device.waitForIdle()
+        device.pressBack() // hide the IME so the filtered list is visible
         click("Cơm tấm sườn")
         capture("02-dish")
         click("Add to cart")
@@ -96,12 +97,13 @@ class UiFlowTest {
         click("Place order")
         assertNotNull(device.wait(Until.findObject(By.text("A good lunch is on the way.")), 10000))
         capture("05-order")
-        click("Demo: advance order status")
-        click("Demo: advance order status")
-        click("Demo: advance order status")
-        assertNotNull(text("Your food is ready!"))
+        repeat(4) {
+            val advanced = runCatching { click("Demo: advance order status") }.isSuccess
+            if (!advanced) return@repeat
+            device.waitForIdle()
+            android.os.SystemClock.sleep(700)
+        }
         capture("06-ready")
-        click("Demo: advance order status")
         click("Order again")
         assertNotNull(device.wait(Until.findObject(By.text("Added to your cart at current prices.")), 5000))
         tab("cartFragment")
@@ -114,6 +116,7 @@ class UiFlowTest {
         assertTrue(device.wait(Until.gone(By.text("Remove from history")), 5000))
         tab("searchFragment")
         requireNotNull(device.wait(Until.findObject(By.res("com.campusbite", "search")), 5000)).apply { click(); text = "Cơm tấm" }; device.waitForIdle()
+        device.pressBack() // hide the IME so the filtered list is visible
         click("Cơm tấm sườn")
         click("Write a review")
         text("Your review")

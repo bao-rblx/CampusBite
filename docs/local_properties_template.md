@@ -8,8 +8,8 @@
 # MOCKAPI_BASE_URL=https://XXXX.mockapi.io/api/v1/
 
 # Signing config for release builds (Milestone 05)
-# Generate the keystore with: scripts/generate_keystore.ps1
+# Ask the release engineer for the keystore; never commit it or its passwords.
 # STORE_FILE=release-key.jks
-# STORE_PASS=campusbite2026
-# KEY_ALIAS=campusbite-key
-# KEY_PASS=campusbite2026
+# STORE_PASS=<your-store-password>
+# KEY_ALIAS=<your-key-alias>
+# KEY_PASS=<your-key-password>

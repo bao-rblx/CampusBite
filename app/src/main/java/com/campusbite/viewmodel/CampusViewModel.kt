@@ -1,13 +1,13 @@
-package com.campusbite.ui
+package com.campusbite.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.campusbite.data.AuthRepository
 import com.campusbite.data.local.entity.*
 import com.campusbite.di.ServiceLocator
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
-import com.campusbite.data.local.entity.OrderItemSnapshot
 
 data class CampusState(
     val user: UserEntity? = null,
@@ -15,19 +15,19 @@ data class CampusState(
     val dishes: List<DishEntity> = emptyList(),
     val cart: List<CartEntity> = emptyList(),
     val orders: List<OrderEntity> = emptyList(),
-    val slots: List<SlotEntity> = emptyList()
+    val slots: List<SlotEntity> = emptyList(),
+    val allOrders: List<OrderEntity> = emptyList(),
+    val allReviews: List<ReviewEntity> = emptyList()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CampusViewModel : ViewModel() {
-    // The View layer never sees a Repository; it talks to this ViewModel only.
     private val repository = ServiceLocator.repository
     private val auth = ServiceLocator.auth
     val busy = MutableStateFlow(false)
     private val events = Channel<String>(Channel.BUFFERED)
     val messages = events.receiveAsFlow()
 
-    /** Explicit Loading / Success / Error state for the networked catalogue screens. */
     private val _catalogState = MutableStateFlow<UiState<Unit>>(UiState.Loading)
     val catalogState: StateFlow<UiState<Unit>> = _catalogState.asStateFlow()
 
@@ -46,20 +46,39 @@ class CampusViewModel : ViewModel() {
     }
 
     private val catalog = combine(repository.observeStalls(), repository.observeDishes(), repository.observeSlots()) { s, d, p -> Triple(s, d, p) }
+    private val extra = combine(repository.observeAllVendorOrders(), repository.observeAllCampusReviews()) { o, r -> Pair(o, r) }
+
     val state = auth.uid.flatMapLatest { uid ->
-        if (uid == null) flowOf(CampusState()) else combine(catalog, repository.observeUser(uid), repository.observeCart(uid), repository.observeOrders(uid)) { data, user, cart, orders ->
-            val demo = uid == com.campusbite.data.AuthRepository.DEMO_UID
-            CampusState(user, data.first.filter { it.stallId.startsWith("demo-") == demo },
-                data.second.filter { it.dishId.startsWith("demo-") == demo }, cart, orders,
-                data.third.filter { it.slotId.startsWith("demo-") == demo })
+        if (uid == null) flowOf(CampusState()) else combine(
+            catalog,
+            repository.observeUser(uid),
+            repository.observeCart(uid),
+            repository.observeOrders(uid),
+            extra
+        ) { data, user, cart, orders, extraData ->
+            // Demo data is isolated per persona; campus-wide order/review feeds are
+            // only materialised in the state for staff roles.
+            val demo = uid in listOf(AuthRepository.DEMO_UID, AuthRepository.VENDOR_DEMO_UID, AuthRepository.MANAGER_DEMO_UID)
+            val role = user?.role ?: AuthRepository.STUDENT
+            val isStaff = role == AuthRepository.VENDOR || role == AuthRepository.MANAGER
+            CampusState(
+                user,
+                data.first.filter { it.stallId.startsWith("demo-") == demo },
+                data.second.filter { it.dishId.startsWith("demo-") == demo },
+                cart,
+                orders,
+                data.third.filter { it.slotId.startsWith("demo-") == demo },
+                if (isStaff) extraData.first.filter { it.orderId.startsWith("demo-") == demo || !demo } else emptyList(),
+                if (role == AuthRepository.MANAGER) extraData.second else emptyList()
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CampusState())
 
     init {
         action { repository.initialize() }
-        viewModelScope.launch { auth.uid.collectLatest {
+        viewModelScope.launch { auth.uid.collectLatest { uid ->
             ServiceLocator.cloud.start()
-            if (it != null) action { repository.refresh(); ServiceLocator.cloud.start() }
+            if (uid != null) action { repository.refresh() }
         } }
         viewModelScope.launch { ServiceLocator.cloud.connectionMessage.filterNotNull().distinctUntilChanged().collect { events.send(it) } }
     }
@@ -86,10 +105,11 @@ class CampusViewModel : ViewModel() {
     val uid: StateFlow<String?> get() = auth.uid
     val isDemo: Boolean get() = auth.isDemo
     val cloudConfigured: Boolean get() = auth.cloudConfigured
-    suspend fun demo() = auth.demo()
+    suspend fun demo(role: String = "STUDENT") = auth.demo(role)
     suspend fun authenticate(email: String, password: String, name: String?, confirmation: String) = auth.authenticate(email, password, name, confirmation)
     suspend fun resetPassword(email: String) = auth.resetPassword(email)
     suspend fun saveProfile(name: String, favouriteStall: String?, notifications: Boolean) = auth.saveProfile(name, favouriteStall, notifications)
+    suspend fun saveRole(role: String) = auth.saveRole(role)
     suspend fun logout() = auth.logout()
     suspend fun deleteAccount() = auth.deleteAccount()
 
@@ -109,6 +129,12 @@ class CampusViewModel : ViewModel() {
     suspend fun review(dishId: String, rating: Int, comment: String, deleted: Boolean = false) = repository.review(dishId, rating, comment, deleted)
     fun watchReviews(dishId: String) = ServiceLocator.cloud.watchReviews(dishId)
     fun reviewsFor(dishId: String): Flow<List<ReviewEntity>> = repository.observeReviews(dishId)
+
+    // ---- Vendor & Manager Controls (role-checked in the repository) ----
+    suspend fun setDishAvailability(dishId: String, isAvailable: Boolean) = repository.setDishAvailability(dishId, isAvailable)
+    suspend fun setStallOpenStatus(stallId: String, isOpen: Boolean) = repository.setStallOpenStatus(stallId, isOpen)
+    suspend fun updateOrderStatus(orderId: String, status: OrderStatus) = repository.updateOrderStatus(orderId, status)
+
     fun message(text: String) { viewModelScope.launch { events.send(text) } }
     override fun onCleared() { ServiceLocator.cloud.stop() }
 }

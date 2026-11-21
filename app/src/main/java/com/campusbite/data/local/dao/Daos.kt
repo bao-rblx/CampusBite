@@ -118,6 +118,9 @@ interface OrderDao {
     @Query("SELECT * FROM orders WHERE userId = :uid ORDER BY createdAt DESC")
     fun observeAll(uid: String): Flow<List<OrderEntity>>
 
+    @Query("SELECT * FROM orders ORDER BY createdAt DESC")
+    fun observeAllOrders(): Flow<List<OrderEntity>>
+
     @Query("SELECT * FROM orders WHERE orderId = :id")
     fun observe(id: String): Flow<OrderEntity?>
 
@@ -144,6 +147,9 @@ interface ReviewDao {
     suspend fun deleteForUser(uid: String)
     @Query("SELECT * FROM reviews WHERE dishId = :dishId AND isDeleted = 0 ORDER BY updatedAt DESC")
     fun observeForDish(dishId: String): Flow<List<ReviewEntity>>
+
+    @Query("SELECT * FROM reviews WHERE isDeleted = 0 ORDER BY updatedAt DESC")
+    fun observeAllReviews(): Flow<List<ReviewEntity>>
 
     @Query("SELECT * FROM reviews WHERE syncState != 'SYNCED'")
     suspend fun pending(): List<ReviewEntity>

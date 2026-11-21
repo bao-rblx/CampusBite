@@ -1,4 +1,4 @@
-package com.campusbite.ui
+package com.campusbite.viewmodel
 
 /**
  * Explicit three-state UI contract shared by every networked screen.

@@ -1,12 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CampusBite" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">#FFB597</item>
-        <item name="colorOnPrimary">#54200B</item>
-        <item name="colorSecondary">#B5C9A9</item>
-        <item name="colorSecondaryContainer">#35462E</item>
-        <item name="colorOnSecondaryContainer">#D9EACB</item>
-        <item name="colorSurface">#211C19</item>
-        <item name="android:windowBackground">#211C19</item>
+        <item name="colorPrimary">#51E289</item>
+        <item name="colorOnPrimary">#003917</item>
+        <item name="colorPrimaryContainer">#005225</item>
+        <item name="colorOnPrimaryContainer">#E6F7ED</item>
+        <item name="colorSecondary">#4AD880</item>
+        <item name="colorSecondaryContainer">#005223</item>
+        <item name="colorOnSecondaryContainer">#D7F2E3</item>
+        <item name="colorSurface">#191C19</item>
+        <item name="colorOnSurface">#E1E3DF</item>
+        <item name="colorSurfaceVariant">#404943</item>
+        <item name="colorOnSurfaceVariant">#C0C9C2</item>
+        <item name="colorOutlineVariant">#2D3530</item>
+        <item name="android:windowBackground">#121413</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:fontFamily">sans</item>
     </style>

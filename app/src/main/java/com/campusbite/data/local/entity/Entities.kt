@@ -147,7 +147,8 @@ data class UserEntity(
     val email: String,
     val avatarUrl: String?,
     val favouriteStallId: String?,
-    val notificationsOn: Boolean
+    val notificationsOn: Boolean,
+    val role: String = "STUDENT"
 )
 
 @Entity(tableName = "slots")

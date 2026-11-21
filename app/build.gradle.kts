@@ -17,12 +17,12 @@ val localProps = Properties().apply {
 }
 
 // Release signing configuration — keystore is NOT committed (see .gitignore).
-// Generate it once with: scripts/generate_keystore.ps1
-// Then add these lines to local.properties (do NOT commit them):
+// Add these lines to your own local.properties (never commit them).
+// The keystore and its passwords live only on the release engineer's machine:
 //   STORE_FILE=release-key.jks
-//   STORE_PASS=campusbite2026
-//   KEY_ALIAS=campusbite-key
-//   KEY_PASS=campusbite2026
+//   STORE_PASS=<your-store-password>
+//   KEY_ALIAS=<your-key-alias>
+//   KEY_PASS=<your-key-password>
 val signStoreFile: String? = localProps.getProperty("STORE_FILE")
 val signStorePass: String? = localProps.getProperty("STORE_PASS")
 val signKeyAlias: String?  = localProps.getProperty("KEY_ALIAS")
