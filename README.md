@@ -4,7 +4,9 @@ Native Android campus food ordering app built from the capstone proposal and the
 
 ## Run the app
 
-Open this folder in Android Studio, sync Gradle, and run `app`. Choose **Explore the demo** on the welcome screen. No credentials or network connection are needed for the demo.
+Open this folder in Android Studio, sync Gradle, and run `app`. On the welcome screen choose one of the three demo personas — **Continue as Student**, **Continue as Vendor (demo)** or **Continue as Manager (demo)**. No credentials or network connection are needed for the demo.
+
+The demo personas are deliberately isolated: student demo data is prefixed `demo-` and a real Firebase account is always a STUDENT. Vendor and Manager dashboards are demo-only; the repository rejects staff writes from any other role, so a self-registered account cannot promote itself.
 
 The installable debug APK is produced at `app/build/outputs/apk/debug/app-debug.apk`. This is a development build, not a Play Store release.
 

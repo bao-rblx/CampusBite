@@ -1,6 +1,7 @@
 package com.campusbite.ui
 
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -16,6 +17,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import com.campusbite.R
 import com.campusbite.databinding.ActivityMainBinding
+import com.campusbite.viewmodel.CampusViewModel
 
 class MainActivity : AppCompatActivity() {
 
@@ -57,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         }
         lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
             launch { vm.uid.collect { uid ->
-                binding.bottomNav.show(uid != null)
+                binding.bottomNavCard.show(uid != null)
                 val destination = controller.currentDestination?.id
                 if (uid == null && destination != R.id.loginFragment) controller.navigate(R.id.loginFragment, null, NavOptions.Builder().setPopUpTo(R.id.nav_graph, true).build())
                 else if (uid != null && destination == R.id.loginFragment) controller.navigate(R.id.homeFragment, null, NavOptions.Builder().setPopUpTo(R.id.nav_graph, true).build())
@@ -70,7 +72,7 @@ class MainActivity : AppCompatActivity() {
             launch { vm.messages.collect {
                 messageBar?.dismiss()
                 messageBar = Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).apply {
-                    if (binding.bottomNav.visibility == android.view.View.VISIBLE) anchorView = binding.bottomNav
+                    if (binding.bottomNavCard.visibility == View.VISIBLE) anchorView = binding.bottomNavCard
                     show()
                 }
             } }
