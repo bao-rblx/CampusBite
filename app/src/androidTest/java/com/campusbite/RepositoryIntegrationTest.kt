@@ -30,7 +30,9 @@ class RepositoryIntegrationTest {
         }
         val auth = AuthRepository(context, db)
         repo = CampusRepository(db, api, auth) {}
-        repo.initialize(); auth.demo()
+        // Sign into the demo persona first so initialize() actually seeds the demo catalogue.
+        auth.demo()
+        repo.initialize()
     }
     @After fun close() { db.close() }
     private suspend fun selections() = db.slotDao().observeAll().first().filter { it.startsAt > System.currentTimeMillis() }.groupBy { it.stallId }.mapValues { it.value.first().slotId }
