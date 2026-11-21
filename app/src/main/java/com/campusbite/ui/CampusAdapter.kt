@@ -9,7 +9,9 @@ import com.campusbite.data.local.entity.DishEntity
 import com.campusbite.databinding.ItemDishBinding
 import com.campusbite.databinding.ItemPanelBinding
 import com.campusbite.domain.money
+import com.google.android.material.R
 import com.google.android.material.chip.Chip
+import com.google.android.material.color.MaterialColors
 
 data class RowAction(val label: String, val key: String)
 data class DisplayRow(val id: String, val title: String = "", val detail: String = "", val tag: String = "",
@@ -28,14 +30,21 @@ class CampusAdapter(private val action: (String, String) -> Unit) : ListAdapter<
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val row = getItem(position)
+        // No per-bind animation: re-binding during a scroll must not restart a
+        // fade or allocate an animator (jank + allocations inside onBindViewHolder).
         when (holder) {
             is DishHolder -> with(holder.binding) {
                 val dish = requireNotNull(row.dish)
-                name.text = dish.name; meta.text = "${row.stall} · ★ ${dish.avgRating}"; price.text = money(dish.price)
-                // Shared Glide loader: placeholder, error fallback and disk/memory cache.
+                name.text = dish.name; meta.text = row.stall; price.text = money(dish.price)
+                ratingBadge.text = "★ ${"%.1f".format(dish.avgRating)}"
                 ImageLoader.load(photo, dish.imageUrl, dish.category)
                 heart.text = if (dish.isFavourite) "♥" else "♡"
                 heart.contentDescription = if (dish.isFavourite) "Remove ${dish.name} from favourites" else "Save ${dish.name} to favourites"
+
+                root.addSpringTouchEffect()
+                add.addSpringTouchEffect()
+                heart.addSpringTouchEffect()
+
                 heart.setOnClickListener { action("favourite", dish.dishId) }
                 add.text = if (dish.isAvailable) "+ Add" else "Sold out"; add.isEnabled = dish.isAvailable
                 add.contentDescription = "Add ${dish.name} to cart"
@@ -44,11 +53,14 @@ class CampusAdapter(private val action: (String, String) -> Unit) : ListAdapter<
             }
             is PanelHolder -> with(holder.binding) {
                 tag.text = row.tag; tag.show(row.tag.isNotBlank()); title.text = row.title; detail.text = row.detail
-                val surface = com.google.android.material.color.MaterialColors.getColor(root, com.google.android.material.R.attr.colorSurface)
-                root.setCardBackgroundColor(if (row.hero) com.google.android.material.color.MaterialColors.getColor(root, com.google.android.material.R.attr.colorSecondaryContainer) else surface)
+                val surface = MaterialColors.getColor(root, R.attr.colorSurface)
+                val primaryContainer = MaterialColors.getColor(root, R.attr.colorPrimaryContainer)
+                root.setCardBackgroundColor(if (row.hero) primaryContainer else surface)
+                root.addSpringTouchEffect()
                 actions.removeAllViews()
                 row.actions.forEach { a -> actions.addView(Chip(root.context).apply {
                     text = a.label; minHeight = context.dp(48); isCheckable = false; setEnsureMinTouchTargetSize(true)
+                    addSpringTouchEffect()
                     setOnClickListener { action(a.key, row.id) }
                 }) }
                 actions.show(row.actions.isNotEmpty())

@@ -1,10 +1,12 @@
 package com.campusbite.ui
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.core.widget.doAfterTextChanged
@@ -21,6 +23,9 @@ import com.campusbite.R
 import com.campusbite.data.local.entity.*
 import com.campusbite.databinding.FragmentDashboardBinding
 import com.campusbite.domain.money
+import com.campusbite.viewmodel.CampusState
+import com.campusbite.viewmodel.CampusViewModel
+import com.campusbite.viewmodel.UiState
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -42,7 +47,7 @@ class DashboardFragment : Fragment() {
     private var sort = 0
     private var status = "All"
     private var visibleCategories: List<String> = emptyList()
-    private var activeDialog: androidx.appcompat.app.AlertDialog? = null
+    private var activeDialog: AlertDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, state: Bundle?): View {
         query = state?.getString("query").orEmpty(); category = state?.getString("category") ?: "All"
@@ -57,13 +62,14 @@ class DashboardFragment : Fragment() {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() { override fun getSpanSize(position: Int) = if (adapter.currentList.getOrNull(position)?.dish != null) 1 else 2 }
         }
         b.list.layoutManager = manager; b.list.adapter = adapter
-        b.list.setHasFixedSize(false) // row count changes; height does not
+        b.list.setHasFixedSize(false)
         b.list.setItemViewCacheSize(20)
         b.searchBox.show(page == "home" || page == "search")
         b.search.setText(query)
         b.search.doAfterTextChanged { query = it.toString(); render() }
         b.refresh.setOnRefreshListener { vm.loadCatalog(); binding?.refresh?.isRefreshing = false }
         b.refresh.isEnabled = page == "home" || page == "search"
+        b.primary.addSpringTouchEffect()
         if (page == "cart") ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(r: RecyclerView, h: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
             override fun getSwipeDirs(r: RecyclerView, h: RecyclerView.ViewHolder): Int = if (adapter.currentList.getOrNull(h.bindingAdapterPosition)?.id?.startsWith("cart:") == true) super.getSwipeDirs(r, h) else 0
@@ -91,40 +97,179 @@ class DashboardFragment : Fragment() {
         }
         when (page) {
             "home", "search" -> {
-                (listOf("All") + latest.dishes.map { it.category }.distinct().sorted()).forEach { value -> chip(value, category == value) { category = value } }
+                (listOf("All") + latest.dishes.map { it.category }.distinct().sorted()).forEach { value ->
+                    val label = when (value) {
+                        "Rice" -> "🍚 Rice"
+                        "Noodles" -> "🍜 Noodles"
+                        "Drinks" -> "🥤 Drinks"
+                        "Snacks" -> "🍿 Snacks"
+                        else -> value
+                    }
+                    chip(label, category == value) { category = value }
+                }
                 chip("♥ Saved", favourites) { favourites = !favourites }
                 chip("≤ 30,000 ₫", budget) { budget = !budget }
-                chip(listOf("Top rated", "Price ↑", "Price ↓")[sort], sort != 0) { sort = (sort + 1) % 3 }
+                chip(listOf("⭐ Top rated", "Price ↑", "Price ↓")[sort], sort != 0) { sort = (sort + 1) % 3 }
             }
             "orders" -> listOf("All", "QUEUED", "CONFIRMED", "PREPARING", "READY", "COMPLETED", "CANCELLED").forEach { value -> chip(value.lowercase().replaceFirstChar { it.titlecase() }, status == value) { status = value } }
         }
-        b.filterScroll.show(page in listOf("home", "search", "orders"))
+        b.filterScroll.show(page in listOf("home", "search", "orders") && (latest.user?.role ?: "STUDENT") == "STUDENT")
     }
 
     private fun render() {
         val b = binding ?: return
-        b.eyebrow.text = if (vm.isDemo) "CAMPUSBITE  /  DEMO" else "CAMPUSBITE  /  PICK UP & GO"
+        val role = latest.user?.role ?: "STUDENT"
         b.primary.show(false)
-        // Three-state networked UI: Loading spinner, Error banner, otherwise Success content.
         b.loading.show(false)
         b.errorBanner.show(false)
-        if (page == "home" || page == "search") {
+
+        if ((page == "home" || page == "search") && role == "STUDENT") {
             when (val catalog = catalogState) {
                 is UiState.Loading -> { b.loading.show(true); adapter.submitList(emptyList()); return }
                 is UiState.Error -> { b.errorBanner.text = catalog.message; b.errorBanner.show(true) }
                 is UiState.Success -> Unit
             }
         }
+
         val categories = latest.dishes.map { it.category }.distinct().sorted()
         if (categories != visibleCategories) { visibleCategories = categories; filters() }
         val rows = mutableListOf<DisplayRow>()
         fun stall(id: String) = latest.stalls.find { it.stallId == id }?.name ?: "Campus stall"
+
+        when (role) {
+            "VENDOR" -> renderVendorView(b, rows)
+            "MANAGER" -> renderManagerView(b, rows)
+            else -> renderStudentView(b, rows, stall = ::stall)
+        }
+        adapter.submitList(rows)
+    }
+
+    private fun renderVendorView(b: FragmentDashboardBinding, rows: MutableList<DisplayRow>) {
+        b.eyebrow.text = "CAMPUSBITE  ✦  VENDOR FULFILLMENT"
+        b.title.text = "Stall Operations Center"
+        b.subtitle.text = "Manage live incoming orders and menu item availability."
+        b.searchBox.show(false)
+
+        rows += DisplayRow(
+            "role_info",
+            latest.user?.displayName ?: "Stall Vendor",
+            latest.user?.email.orEmpty(),
+            "VENDOR ACCOUNT",
+            listOf(RowAction("Sign out", "logout")),
+            hero = true
+        )
+
+        val vendorOrders = latest.allOrders.filter { it.status != OrderStatus.CANCELLED }
+        val completedRevenue = vendorOrders.filter { it.status == OrderStatus.COMPLETED }.sumOf { it.totalAmount }
+        rows += DisplayRow(
+            "vendor_stats",
+            "Fulfillment Overview",
+            "Completed Sales: ${money(completedRevenue)}\nActive Orders: ${vendorOrders.count { it.status != OrderStatus.COMPLETED }} · Total: ${vendorOrders.size}",
+            "LIVE SUMMARY"
+        )
+
+        rows += DisplayRow("header_orders", "Incoming Order Queue", "Real-time orders ready for preparation and pickup.", "FULFILLMENT QUEUE")
+        if (vendorOrders.isEmpty()) {
+            rows += DisplayRow("empty_vendor_orders", "No active orders queued.", "New customer orders will appear here in real-time.")
+        } else {
+            vendorOrders.forEach { order ->
+                val stallName = latest.stalls.find { it.stallId == order.stallId }?.name ?: "Stall"
+                val actions = when (order.status) {
+                    OrderStatus.QUEUED -> listOf(RowAction("Confirm Order ➔", "confirmOrder"))
+                    OrderStatus.CONFIRMED -> listOf(RowAction("Start Preparing 🍳", "prepareOrder"))
+                    OrderStatus.PREPARING -> listOf(RowAction("Ready for Pickup 🔔", "readyOrder"))
+                    OrderStatus.READY -> listOf(RowAction("Complete Pickup ✔", "completeOrder"))
+                    else -> emptyList()
+                }
+                rows += DisplayRow(
+                    order.orderId,
+                    "$stallName · #${order.orderId.take(8)}",
+                    "Pickup Window: ${order.pickupWindow}\nTotal: ${money(order.totalAmount)} · Status: ${order.status.name}",
+                    order.status.name.replace('_', ' '),
+                    actions,
+                    hero = order.status == OrderStatus.QUEUED || order.status == OrderStatus.PREPARING
+                )
+            }
+        }
+
+        rows += DisplayRow("header_inventory", "Dish Availability Manager", "Toggle sold-out items instantly on the campus menu.", "INVENTORY CONTROL")
+        latest.dishes.forEach { dish ->
+            val stallName = latest.stalls.find { it.stallId == dish.stallId }?.name ?: "Stall"
+            rows += DisplayRow(
+                "dish_avail:${dish.dishId}",
+                dish.name,
+                "$stallName · ${money(dish.price)}\nStatus: ${if (dish.isAvailable) "Available" else "Sold Out"}",
+                if (dish.isAvailable) "AVAILABLE" else "SOLD OUT",
+                listOf(RowAction(if (dish.isAvailable) "Mark Sold Out" else "Mark Available", "toggleDishAvailability"))
+            )
+        }
+    }
+
+    private fun renderManagerView(b: FragmentDashboardBinding, rows: MutableList<DisplayRow>) {
+        b.eyebrow.text = "CAMPUSBITE  ✦  EXECUTIVE DASHBOARD"
+        b.title.text = "Campus Operations Analytics"
+        b.subtitle.text = "Real-time revenue analytics, stall operational controls, and ratings."
+        b.searchBox.show(false)
+
+        rows += DisplayRow(
+            "role_info",
+            latest.user?.displayName ?: "Campus Manager",
+            latest.user?.email.orEmpty(),
+            "MANAGER ACCOUNT",
+            listOf(RowAction("Sign out", "logout")),
+            hero = true
+        )
+
+        val totalRevenue = latest.allOrders.filter { it.status == OrderStatus.COMPLETED }.sumOf { it.totalAmount }
+        val totalOrders = latest.allOrders.size
+        val avgRating = if (latest.dishes.isEmpty()) 4.8f else latest.dishes.map { it.avgRating }.average().toFloat()
+        val openStalls = latest.stalls.count { it.isOpen }
+
+        rows += DisplayRow(
+            "manager_analytics",
+            "Campus Revenue: ${money(totalRevenue)}",
+            "Total Orders: $totalOrders · Average Campus Rating: ★ ${"%.1f".format(avgRating)}\nStalls Open: $openStalls of ${latest.stalls.size}",
+            "EXECUTIVE SUMMARY",
+            hero = true
+        )
+
+        rows += DisplayRow("header_stalls", "Stall Operational Controls", "Monitor stall sales performance and toggle open status.", "STALL MANAGEMENT")
+        latest.stalls.forEach { stall ->
+            val stallOrders = latest.allOrders.filter { it.stallId == stall.stallId }
+            val stallRev = stallOrders.filter { it.status == OrderStatus.COMPLETED }.sumOf { it.totalAmount }
+            rows += DisplayRow(
+                "stall_manage:${stall.stallId}",
+                stall.name,
+                "${stall.location}\nRevenue: ${money(stallRev)} · Orders: ${stallOrders.size} · Status: ${if (stall.isOpen) "Open" else "Closed"}",
+                if (stall.isOpen) "OPEN" else "CLOSED",
+                listOf(RowAction(if (stall.isOpen) "Close Stall" else "Open Stall", "toggleStallOpen"))
+            )
+        }
+
+        rows += DisplayRow("header_feedback", "Live Campus Feedback Feed", "Real-time student reviews and meal ratings.", "CUSTOMER FEEDBACK")
+        if (latest.allReviews.isEmpty()) {
+            rows += DisplayRow("empty_reviews", "No student reviews yet.", "Reviews submitted by students will stream live here.")
+        } else {
+            latest.allReviews.take(10).forEach { review ->
+                val dishName = latest.dishes.find { it.dishId == review.dishId }?.name ?: "Dish"
+                rows += DisplayRow(
+                    "rev:${review.reviewId}",
+                    "${"★".repeat(review.rating)}  ${review.authorName}",
+                    "Item: $dishName\n\"${review.comment.ifBlank { "Rated ${review.rating} out of 5" }}\"",
+                    "RATING ${review.rating}/5"
+                )
+            }
+        }
+    }
+
+    private fun renderStudentView(b: FragmentDashboardBinding, rows: MutableList<DisplayRow>, stall: (String) -> String) {
+        b.eyebrow.text = "CAMPUSBITE  ✦  CAMPUS DINING"
         when (page) {
             "home", "search" -> {
                 b.title.text = if (page == "home") "What sounds good?" else "Find your next favourite."
                 b.subtitle.text = if (page == "home") "Hey ${latest.user?.displayName?.substringBefore(' ') ?: "there"}. Make your lunch break count." else "Fresh picks. Student prices. Right on campus."
                 if (page == "home" && query.isBlank() && category == "All" && !favourites && !budget) {
-                    rows += DisplayRow("hero", "Your lunch break,\nwithout the wait.", "Order ahead. Pick up after class.\nMeals from 18,000 ₫ · Pay at pickup", "A LITTLE LESS QUEUE. A LOT MORE LUNCH.", listOf(RowAction("Explore the stalls ↗", "stalls")), hero = true)
+                    rows += DisplayRow("hero", "Your lunch break,\nwithout the wait.", "Order ahead. Pick up after class.\nMeals from 18,000 ₫ · Pay at pickup", "ZERO QUEUES · FAST PICKUP", listOf(RowAction("Explore the stalls ↗", "stalls")), hero = true)
                 }
                 val dishes = latest.dishes.filter {
                     (category == "All" || it.category == category) && (!favourites || it.isFavourite) && (!budget || it.price <= 30000) &&
@@ -153,7 +298,7 @@ class DashboardFragment : Fragment() {
             }
             "orders" -> {
                 b.title.text = "Lunch plans, sorted."
-                b.subtitle.text = if (vm.isDemo) "Demo orders stay on this device." else "Your pickup updates, all in one place."
+                b.subtitle.text = "Your pickup updates and order status, all in one place."
                 val orders = latest.orders.filter { status == "All" || it.status.name == status }
                 if (orders.isEmpty()) rows += DisplayRow("empty", "No orders here yet.", "Your next great lunch starts with the menu.", actions = listOf(RowAction("Find something good", "home")))
                 orders.forEach { order ->
@@ -165,14 +310,12 @@ class DashboardFragment : Fragment() {
                 b.title.text = "A seat at the table."
                 b.subtitle.text = "Your profile, your preferences."
                 val user = latest.user
-                rows += DisplayRow("profile", user?.displayName ?: "Welcome", user?.email.orEmpty(), if (vm.isDemo) "DEMO ACCOUNT" else "CAMPUS MEMBER", listOf(RowAction("Edit profile", "editProfile")), hero = true)
+                rows += DisplayRow("profile", user?.displayName ?: "Welcome", user?.email.orEmpty(), "STUDENT ACCOUNT", listOf(RowAction("Edit profile", "editProfile")))
                 rows += DisplayRow("saved", "The usual, please.", "${latest.dishes.count { it.isFavourite }} saved favourites", "YOUR COLLECTION", listOf(RowAction("See favourites", "saved")))
-                rows += DisplayRow("settings", "Make it yours.", "Favourite stall: ${user?.favouriteStallId?.let(::stall) ?: "Not selected"}\nNotification preference: ${if (user?.notificationsOn == true) "On" else "Off"}", "PREFERENCES", listOf(RowAction("Toggle dark mode", "theme"), RowAction("Browse stalls", "stalls")))
+                rows += DisplayRow("settings", "Make it yours.", "Favourite stall: ${user?.favouriteStallId?.let(stall) ?: "Not selected"}\nNotification preference: ${if (user?.notificationsOn == true) "On" else "Off"}", "PREFERENCES", listOf(RowAction("Toggle dark mode", "theme"), RowAction("Browse stalls", "stalls")))
                 rows += DisplayRow("session", "Account & privacy", "Signing out clears this account’s cart. Saved orders remain available when you sign in again.", actions = listOf(RowAction("Sign out", "logout"), RowAction("Delete account", "deleteAccount")))
-                if (vm.isDemo) rows += DisplayRow("demo", "You’re exploring a demo.", "Orders and reviews are saved locally. No food is ordered and no payment is taken. Email accounts need Firebase configuration.")
             }
         }
-        adapter.submitList(rows)
     }
 
     private fun handle(action: String, id: String) {
@@ -192,9 +335,26 @@ class DashboardFragment : Fragment() {
             "reset" -> { category = "All"; query = ""; favourites = false; budget = false; binding?.search?.setText(""); filters(); render() }
             "stalls" -> showStalls()
             "editProfile" -> editProfile()
+            "roleStudent" -> vm.action("Switched to Student mode.") { vm.saveRole("STUDENT") }
+            "roleVendor" -> vm.action("Switched to Vendor mode.") { vm.saveRole("VENDOR") }
+            "roleManager" -> vm.action("Switched to Manager mode.") { vm.saveRole("MANAGER") }
+            "confirmOrder" -> vm.action("Order confirmed.") { vm.updateOrderStatus(id, OrderStatus.CONFIRMED) }
+            "prepareOrder" -> vm.action("Order in preparation.") { vm.updateOrderStatus(id, OrderStatus.PREPARING) }
+            "readyOrder" -> vm.action("Order ready for pickup!") { vm.updateOrderStatus(id, OrderStatus.READY) }
+            "completeOrder" -> vm.action("Order pickup completed.") { vm.updateOrderStatus(id, OrderStatus.COMPLETED) }
+            "toggleDishAvailability" -> {
+                val dishId = id.removePrefix("dish_avail:")
+                val targetDish = latest.dishes.find { it.dishId == dishId }
+                if (targetDish != null) vm.action("Dish availability updated.") { vm.setDishAvailability(dishId, !targetDish.isAvailable) }
+            }
+            "toggleStallOpen" -> {
+                val stallId = id.removePrefix("stall_manage:")
+                val targetStall = latest.stalls.find { it.stallId == stallId }
+                if (targetStall != null) vm.action("Stall status updated.") { vm.setStallOpenStatus(stallId, !targetStall.isOpen) }
+            }
             "theme" -> {
                 val prefs = requireContext().getSharedPreferences("settings", 0)
-                val dark = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES
+                val dark = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
                 prefs.edit().putBoolean("dark", !dark).apply()
                 AppCompatDelegate.setDefaultNightMode(if (dark) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES)
             }
@@ -235,7 +395,7 @@ class DashboardFragment : Fragment() {
     }
     private fun checkout() {
         val box = form()
-        box.label(if (vm.isDemo) "Demo checkout · No real order" else "Pay at pickup · No delivery fee", 14f, true)
+        box.label("Pay at pickup stall · No delivery fee", 14f, true)
         val selections = mutableMapOf<String, String>()
         var allHaveSlots = true
         latest.cart.groupBy { it.stallId }.forEach { (stallId, _) ->
@@ -263,7 +423,7 @@ class DashboardFragment : Fragment() {
                 val orders = vm.checkout(selections.toMap())
                 dialog.dismiss()
                 if (isAdded && binding != null) findNavController().navigate(R.id.detailFragment, bundleOf("kind" to "order", "id" to orders.first()))
-                vm.message(if (vm.isDemo) "Demo order placed." else "Order saved. Pickup is confirmed after sync.")
+                vm.message("Order placed successfully! Pickup details confirmed.")
             } }
         }
         activeDialog = dialog; dialog.show()
