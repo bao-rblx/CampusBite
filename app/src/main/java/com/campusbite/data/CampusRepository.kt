@@ -27,17 +27,17 @@ class CampusRepository(private val db: AppDatabase, private val api: CampusBiteA
     fun observeCart(uid: String): Flow<List<CartEntity>> = db.cartDao().observe(uid)
     fun observeCartCount(uid: String): Flow<Int> = db.cartDao().observeCount(uid)
     fun observeOrders(uid: String): Flow<List<OrderEntity>> = db.orderDao().observeAll(uid)
+    fun observeAllVendorOrders(): Flow<List<OrderEntity>> = db.orderDao().observeAllOrders()
     fun observeReviews(dishId: String): Flow<List<ReviewEntity>> = db.reviewDao().observeForDish(dishId)
+    fun observeAllCampusReviews(): Flow<List<ReviewEntity>> = db.reviewDao().observeAllReviews()
     val catalogConfigured = !BuildConfig.MOCKAPI_BASE_URL.contains("example.mockapi.io")
     suspend fun initialize() {
         if (!catalogConfigured || auth.isDemo) initializeDemo()
     }
     suspend fun initializeDemo() {
         db.withTransaction {
-            if (db.stallDao().getAll().none { it.stallId.startsWith("demo-") }) {
-                db.stallDao().upsertAll(SeedData.stalls)
-                db.dishDao().upsertAll(SeedData.dishes)
-            }
+            db.stallDao().upsertAll(SeedData.stalls)
+            db.dishDao().upsertKeepFavourite(SeedData.dishes)
             SeedData.slots().forEach { slot ->
                 if (db.slotDao().get(slot.slotId) == null) db.slotDao().upsertAll(listOf(slot))
             }
@@ -114,7 +114,10 @@ class CampusRepository(private val db: AppDatabase, private val api: CampusBiteA
     fun items(order: OrderEntity): List<OrderItemSnapshot> = gson.fromJson(order.itemsJson, Array<OrderItemSnapshot>::class.java).toList()
     suspend fun reorder(order: OrderEntity) {
         require(order.userId == uid())
-        db.withTransaction { items(order).forEach { add(it.dishId, it.quantity, it.note) } }
+        val snapshot = items(order)
+        require(snapshot.isNotEmpty()) { "This order has no items." }
+        require(snapshot.all { db.dishDao().get(it.dishId) != null }) { "Some items are no longer on the menu." }
+        snapshot.forEach { add(it.dishId, it.quantity, it.note) }
     }
     suspend fun cancel(id: String) {
         db.withTransaction {
@@ -158,5 +161,36 @@ class CampusRepository(private val db: AppDatabase, private val api: CampusBiteA
             comment.trim(), if (auth.isDemo) SyncState.SYNCED else SyncState.PENDING, deleted, old?.createdAt ?: now, now)
         db.reviewDao().upsert(review)
         scheduleSync()
+    }
+
+    /** Staff-only writes are checked here, not just hidden in the UI. */
+    private suspend fun requireStaff() {
+        val user = requireNotNull(db.userDao().get(uid())) { "Please sign in first." }
+        require(user.role == AuthRepository.VENDOR || user.role == AuthRepository.MANAGER) {
+            "This action requires a vendor or manager account."
+        }
+    }
+
+    suspend fun setDishAvailability(dishId: String, isAvailable: Boolean) {
+        requireStaff()
+        val dish = requireNotNull(db.dishDao().get(dishId))
+        db.dishDao().upsertAll(listOf(dish.copy(isAvailable = isAvailable, updatedAt = System.currentTimeMillis())))
+    }
+
+    suspend fun setStallOpenStatus(stallId: String, isOpen: Boolean) {
+        requireStaff()
+        val stall = db.stallDao().getAll().find { it.stallId == stallId } ?: return
+        db.stallDao().upsertAll(listOf(stall.copy(isOpen = isOpen, updatedAt = System.currentTimeMillis())))
+    }
+
+    suspend fun updateOrderStatus(orderId: String, status: OrderStatus) {
+        requireStaff()
+        db.withTransaction {
+            val order = requireNotNull(db.orderDao().get(orderId))
+            require(status != OrderStatus.CANCELLED) { "Use the cancellation flow to cancel an order." }
+            require(order.status != OrderStatus.COMPLETED && order.status != OrderStatus.CANCELLED) { "This order is already closed." }
+            require(status.ordinal > order.status.ordinal) { "Orders can only move forward." }
+            db.orderDao().upsert(order.copy(status = status, updatedAt = System.currentTimeMillis()))
+        }
     }
 }
